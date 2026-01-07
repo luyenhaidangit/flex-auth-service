@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36811.4
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Flex.Infrastructures", "src\Flex.Infrastructures\Flex.Infrastructures.csproj", "{3E5D4A9E-1BA5-8B76-1EAF-3943BD970DDF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Flex.Auth", "src\Flex.Auth\Flex.Auth.csproj", "{7BCE0323-5591-49EA-8820-219FBF559242}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3E5D4A9E-1BA5-8B76-1EAF-3943BD970DDF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3E5D4A9E-1BA5-8B76-1EAF-3943BD970DDF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3E5D4A9E-1BA5-8B76-1EAF-3943BD970DDF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3E5D4A9E-1BA5-8B76-1EAF-3943BD970DDF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7BCE0323-5591-49EA-8820-219FBF559242}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7BCE0323-5591-49EA-8820-219FBF559242}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7BCE0323-5591-49EA-8820-219FBF559242}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7BCE0323-5591-49EA-8820-219FBF559242}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A1CF628C-3102-419E-98D0-AD4A4252934C}
+	EndGlobalSection
+EndGlobal
