@@ -5,7 +5,7 @@ VisualStudioVersion = 17.14.36811.4
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Flex.Infrastructures", "src\Flex.Infrastructures\Flex.Infrastructures.csproj", "{3E5D4A9E-1BA5-8B76-1EAF-3943BD970DDF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Flex.Auth", "src\Flex.Auth\Flex.Auth.csproj", "{7BCE0323-5591-49EA-8820-219FBF559242}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Flex.Identity", "src\Flex.Auth\Flex.Identity.csproj", "{7BCE0323-5591-49EA-8820-219FBF559242}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
