@@ -36,28 +36,32 @@ namespace Flex.Infrastructures.Logging
                 .Enrich.WithMachineName()
                 .Enrich.WithProperty("Environment", environmentName)
                 .Enrich.WithProperty("Application", applicationName)
-                .WriteTo.Debug(outputTemplate: OutputTemplate)
-                .WriteTo.Console(outputTemplate: OutputTemplate)
-                .WriteTo.File(
-                    path: "logs/log-.txt",
-                    rollingInterval: RollingInterval.Day,
-                    fileSizeLimitBytes: 10_000_000,
-                    rollOnFileSizeLimit: true,
-                    retainedFileCountLimit: 7,
-                    shared: true,
-                    outputTemplate: OutputTemplate
-                );
-
-            // Add Elasticsearch sink if enabled and configured
-            if (elasticOptions.Enabled && !string.IsNullOrWhiteSpace(elasticUri))
-            {
-                loggerConfig.WriteTo.OpenSearch(new OpenSearchSinkOptions(new Uri(elasticUri))
+                .WriteTo.Async(a =>
                 {
-                    IndexFormat = $"{elasticOptions.IndexPrefix}-{applicationName}-{environmentName}-{DateTime.UtcNow:yyyy.MM.dd}",
-                    AutoRegisterTemplate = false,
-                    ModifyConnectionSettings = c => c.BasicAuthentication(username, password),
-                });
-            }
+                    a.Console(outputTemplate: OutputTemplate);
+                    a.File(
+                        path: "logs/log-.txt",
+                        rollingInterval: RollingInterval.Day,
+                        fileSizeLimitBytes: 10_000_000,
+                        rollOnFileSizeLimit: true,
+                        retainedFileCountLimit: 7,
+                        shared: true,
+                        outputTemplate: OutputTemplate
+                    );
+                }, bufferSize: 5000)
+                .WriteTo.Async(a =>
+                {
+                    if (elasticOptions.Enabled && !string.IsNullOrWhiteSpace(elasticUri))
+                    {
+                        a.OpenSearch(new OpenSearchSinkOptions(new Uri(elasticUri))
+                        {
+                            IndexFormat = $"{elasticOptions.IndexPrefix}-{applicationName}-{environmentName}-{DateTime.UtcNow:yyyy.MM.dd}",
+                            AutoRegisterTemplate = false,
+                            ModifyConnectionSettings = c => c.BasicAuthentication(username, password),
+                            EmitEventFailure = EmitEventFailureHandling.WriteToSelfLog
+                        });
+                    }
+                }, bufferSize: 10000);
 
             // Create logger
             Log.Logger = loggerConfig.CreateLogger();
