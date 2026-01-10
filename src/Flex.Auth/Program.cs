@@ -1,4 +1,3 @@
-using Flex.Apigateway.Extensions;
 using Flex.Identity.Extensions;
 using Flex.Infrastructures.Logging;
 using Serilog;

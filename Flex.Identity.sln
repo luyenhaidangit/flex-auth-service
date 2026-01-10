@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Flex.Infrastructures", "src
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Flex.Identity", "src\Flex.Auth\Flex.Identity.csproj", "{7BCE0323-5591-49EA-8820-219FBF559242}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Flex.Domain", "src\Flex.Domain\Flex.Domain.csproj", "{BD78E839-07F0-497E-9280-36756601AD11}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{7BCE0323-5591-49EA-8820-219FBF559242}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7BCE0323-5591-49EA-8820-219FBF559242}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7BCE0323-5591-49EA-8820-219FBF559242}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BD78E839-07F0-497E-9280-36756601AD11}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BD78E839-07F0-497E-9280-36756601AD11}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BD78E839-07F0-497E-9280-36756601AD11}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BD78E839-07F0-497E-9280-36756601AD11}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
