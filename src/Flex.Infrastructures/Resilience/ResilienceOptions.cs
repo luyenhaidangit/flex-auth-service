@@ -6,9 +6,16 @@ namespace Flex.Infrastructures.Resilience
     public class ResilienceOptions
     {
         /// <summary>
-        /// Total request timeout in seconds. Default: 4 seconds.
+        /// Total request timeout in seconds. This is the maximum time for the entire request including retries.
+        /// Default: 30 seconds.
         /// </summary>
         public int TimeoutSeconds { get; set; } = 30;
+
+        /// <summary>
+        /// Attempt timeout in seconds. This is the timeout for each individual attempt (before retry).
+        /// Must be less than TotalRequestTimeout. Default: 10 seconds (Polly default).
+        /// </summary>
+        public int AttemptTimeoutSeconds { get; set; } = 10;
 
         /// <summary>
         /// Retry configuration.

@@ -31,8 +31,14 @@ namespace Flex.Infrastructures.Resilience
                 .AddHttpMessageHandler<CorrelationIdHandler>()
                 .AddStandardResilienceHandler(options =>
                 {
+                    // ========== ATTEMPT TIMEOUT ==========
+                    // Timeout for each individual attempt (before retry)
+                    // Must be less than TotalRequestTimeout
+                    options.AttemptTimeout.Timeout = TimeSpan.FromSeconds(resilienceOptions.AttemptTimeoutSeconds);
+
                     // ========== TOTAL REQUEST TIMEOUT ==========
                     // Gateway-level timeout to prevent hanging connections
+                    // This is the maximum time for the entire request including all retries
                     options.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(resilienceOptions.TimeoutSeconds);
 
                     // ========== RETRY POLICY ==========
