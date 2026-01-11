@@ -1,4 +1,9 @@
-﻿using Flex.Infrastructures.Authentication;
+﻿using Flex.Domain.Entities;
+using Flex.Identity.Repositories;
+using Flex.Identity.Repositories.Interfaces;
+using Flex.Identity.Services;
+using Flex.Identity.Services.Interfaces;
+using Flex.Infrastructures.Authentication;
 using Flex.Infrastructures.EntityFrameworkCore;
 using Flex.Infrastructures.Observability;
 using Flex.Infrastructures.OpenApi;
@@ -6,6 +11,7 @@ using Flex.Infrastructures.Persistence;
 using Flex.Infrastructures.RateLimiting;
 using Flex.Infrastructures.Resilience;
 using Flex.Infrastructures.Routing;
+using Microsoft.AspNetCore.Identity;
 
 namespace Flex.Identity.Extensions
 {
@@ -52,6 +58,23 @@ namespace Flex.Identity.Extensions
                            .AllowAnyHeader();
                 });
             });
+
+            // Application Services
+            services.AddApplicationServices();
+
+            return services;
+        }
+
+        public static IServiceCollection AddApplicationServices(this IServiceCollection services)
+        {
+            // Repositories
+            services.AddScoped<IUserRepository, UserRepository>();
+
+            // Services
+            services.AddScoped<IUserService, UserService>();
+
+            // Password Hasher
+            services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();
 
             return services;
         }
