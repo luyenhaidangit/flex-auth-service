@@ -66,7 +66,6 @@ namespace Flex.Identity.Services
         private async Task ValidateCreateUserAsync(CreateUserCommand command)
         {
             var username = command.UserName.ToLower();
-            var email = command.Email.ToLower();
 
             // ===== Validate request =====
             // Check if user already exists by username

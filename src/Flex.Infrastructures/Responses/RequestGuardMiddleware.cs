@@ -62,7 +62,7 @@ namespace Flex.Infrastructures.Responses
             context.Response.ContentType = "application/json";
             context.Response.StatusCode = statusCode;
 
-            var response = ApiResponse.Failure(errorCode: responseCode);
+            var response = Result.Failure(errorCode: responseCode);
             var responseJson = JsonSerializer.Serialize(response, JsonOptions);
             await context.Response.WriteAsync(responseJson);
         }

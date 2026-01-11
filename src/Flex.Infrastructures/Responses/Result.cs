@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace Flex.Infrastructures.Responses
 {
-    public class ApiResponse
+    public class Result
     {
         [JsonPropertyOrder(1)]
         public bool IsSuccess { get; set; }
@@ -23,7 +23,7 @@ namespace Flex.Infrastructures.Responses
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public object? Errors { get; set; }
 
-        public ApiResponse(bool isSuccess, string? message, object? data = default, object? errors = default, string? errorCode = null)
+        public Result(bool isSuccess, string? message, object? data = default, object? errors = default, string? errorCode = null)
         {
             IsSuccess = isSuccess;
             Message = message;
@@ -32,14 +32,14 @@ namespace Flex.Infrastructures.Responses
             ErrorCode = errorCode;
         }
 
-        public static ApiResponse Success(object? data = default, string? message = null, string? errorCode = null)
+        public static Result Success(object? data = default, string? message = null, string? errorCode = null)
         {
-            return new ApiResponse(true, message, data, errorCode: errorCode);
+            return new Result(true, message, data, errorCode: errorCode);
         }
 
-        public static ApiResponse Failure(object? errors = default, string? message = null, string? errorCode = null)
+        public static Result Failure(object? errors = default, string? message = null, string? errorCode = null)
         {
-            return new ApiResponse(false, message, default, errors, errorCode);
+            return new Result(false, message, default, errors, errorCode);
         }
     }
 }
