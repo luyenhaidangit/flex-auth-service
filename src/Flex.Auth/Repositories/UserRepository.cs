@@ -16,8 +16,23 @@ namespace Flex.Identity.Repositories
 
         public Task<User?> GetByUserNameAsync(string userName, CancellationToken ct = default)
         {
-            return _context.Users
-                .FirstOrDefaultAsync(u => u.NormalizedUserName == userName.ToUpper(), ct);
+            var result = _context.Users.FirstOrDefaultAsync(u => u.NormalizedUserName == userName.ToUpper(), ct);
+            return result;
+        }
+
+        public async Task<bool> ExistsByUserNameAsync(string userName, CancellationToken ct = default)
+        {
+            var count = await _context.Users.AsNoTracking()
+                .Where(u => u.UserName!.ToLower() == userName.ToLower())
+                .CountAsync(ct);
+            return count > 0;
+        }
+
+        public async Task<long> CreateAsync(User user, CancellationToken ct = default)
+        {
+            await _context.Users.AddAsync(user, ct);
+            await _context.SaveChangesAsync(ct);
+            return user.Id;
         }
     }
 }
