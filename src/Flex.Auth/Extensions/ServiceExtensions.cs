@@ -1,6 +1,8 @@
 ﻿using Flex.Infrastructures.Authentication;
+using Flex.Infrastructures.EntityFrameworkCore;
 using Flex.Infrastructures.Observability;
 using Flex.Infrastructures.OpenApi;
+using Flex.Infrastructures.Persistence;
 using Flex.Infrastructures.RateLimiting;
 using Flex.Infrastructures.Resilience;
 using Flex.Infrastructures.Routing;
@@ -21,7 +23,7 @@ namespace Flex.Identity.Extensions
             services.ConfigureSwagger();
 
             // Global Logging
-            services.AddGlobalLogging(configuration, serviceName: "ApiGateway");
+            services.AddGlobalLogging(configuration, serviceName: "IdentityService");
 
             // Customize
             services.AddRoutingConventions();
@@ -36,6 +38,9 @@ namespace Flex.Identity.Extensions
             services.AddHttpContextAccessor();
             services.AddTransient<CorrelationIdHandler>();
             services.AddDownstreamResilience(configuration);
+
+            // Database
+            services.ConfigureServiceDbContext<IdentityDbContext>(configuration, useWallet: true);
 
             // CORS
             services.AddCors(options =>
