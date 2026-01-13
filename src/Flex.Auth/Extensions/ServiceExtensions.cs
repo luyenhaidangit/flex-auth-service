@@ -27,7 +27,6 @@ namespace Flex.Identity.Extensions
             // Controllers
             services.AddControllers();
 
-            services.AddOpenApi();
             services.AddEndpointsApiExplorer();
             services.ConfigureSwagger();
 
