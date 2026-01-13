@@ -4,10 +4,14 @@ using Flex.Identity.Models.Users;
 using Flex.Identity.Repositories.Interfaces;
 using Flex.Identity.Services.Interfaces;
 using Flex.Infrastructures.Authentication;
+using Flex.Infrastructures.Exceptions;
 using Flex.Infrastructures.Persistence;
+using Flex.Infrastructures.Responses;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using System.Security.Claims;
+using ClaimTypesApp = Flex.Infrastructures.Authentication.ClaimTypes;
+using ClaimTypesAsp = System.Security.Claims.ClaimTypes;
 
 namespace Flex.Identity.Services
 {
@@ -38,34 +42,29 @@ namespace Flex.Identity.Services
             var user = await _userRepository.GetByUserNameAsync(request.UserName, cancellationToken);
             if (user is null)
             {
-                //throw new ValidationException(ErrorCode.InvalidCredentials);
+                throw new ValidationException(ResponseCode.InvalidCredentials);
             }
 
             if (string.IsNullOrEmpty(user.PasswordHash))
             {
-                //throw new ValidationException(ErrorCode.InvalidCredentials);
+                throw new ValidationException(ResponseCode.InvalidCredentials);
             }
 
             var verify = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, request.Password);
             if (verify == PasswordVerificationResult.Failed)
             {
-                //throw new ValidationException(ErrorCode.InvalidCredentials);
+                throw new ValidationException(ResponseCode.InvalidCredentials);
             }
-
-            //var roleNames = await _userRepository.GetRoleNamesAsync(user.Id, cancellationToken);
 
             // Include standard claims
             var claims = new List<Claim>
             {
-                //new Claim(ClaimTypesApp.Jti,  Guid.NewGuid().ToString()),
-                //new Claim(ClaimTypesApp.Iss, _jwtSettings.Issuer),
-                //new Claim(ClaimTypesApp.Aud, _jwtSettings.Audience),
-                //new Claim(ClaimTypesApp.Sub, user.UserName ?? string.Empty),
-                //new Claim(ClaimTypesApp.Email, user.Email ?? string.Empty),
+                new Claim(ClaimTypesApp.Jti,  Guid.NewGuid().ToString()),
+                new Claim(ClaimTypesApp.Iss, _jwtSettings.Issuer),
+                new Claim(ClaimTypesApp.Aud, _jwtSettings.Audience),
+                new Claim(ClaimTypesApp.Sub, user.UserName ?? string.Empty),
+                new Claim(ClaimTypesApp.Email, user.Email ?? string.Empty),
             };
-
-            // Include role claims
-            //claims.AddRange(roleNames.Select(role => new Claim(ClaimTypesAsp.Role, role)));
 
             //var token = _jwtBacklistTokenService.GenerateToken(_jwtSettings, claims);
             var token = string.Empty; // Placeholder for generated token
