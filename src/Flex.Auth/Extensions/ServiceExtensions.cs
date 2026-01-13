@@ -73,6 +73,7 @@ namespace Flex.Identity.Extensions
             services.AddScoped<IUserRepository, UserRepository>();
 
             // Services
+            services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IUserService, UserService>();
 
             // Password Hasher
