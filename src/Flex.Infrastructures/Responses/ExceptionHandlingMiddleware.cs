@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+using Flex.Infrastructures.Exceptions;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Polly.CircuitBreaker;
@@ -44,28 +45,82 @@ namespace Flex.Infrastructures.Responses
         {
             if (context.Response.HasStarted) return;
 
-            var (statusCode, errorCode, message) = ex switch
+            var errorInfo = this.GetErrorInfo(ex);
+
+            _logger.LogError(ex, "[{ErrorCode}] {Message}", errorInfo.ErrorCode, errorInfo.Message);
+            await WriteErrorResponse(context, errorInfo.StatusCode, errorInfo.Message, errorInfo.ErrorCode, errorInfo.Errors);
+        }
+
+        private ErrorInfo GetErrorInfo(Exception ex)
+        {
+            // Authentication errors
+            if (ex is SecurityTokenValidationException)
             {
-                // Authentication errors
-                SecurityTokenValidationException => 
-                    (StatusCodes.Status401Unauthorized, ResponseCode.Unauthorized, "Invalid or expired token"),
-                UnauthorizedAccessException => 
-                    (StatusCodes.Status403Forbidden, ResponseCode.Unauthorized, "Forbidden: You do not have permission"),
+                return new ErrorInfo
+                {
+                    StatusCode = StatusCodes.Status401Unauthorized,
+                    ErrorCode = ResponseCode.Unauthorized,
+                    Message = "Invalid or expired token"
+                };
+            }
 
-                // Gateway Resilience errors
-                BrokenCircuitException => 
-                    (StatusCodes.Status503ServiceUnavailable, "CIRCUIT_BREAKER_OPEN", "Service temporarily unavailable. Circuit breaker is open."),
-                TimeoutRejectedException => 
-                    (StatusCodes.Status504GatewayTimeout, "GATEWAY_TIMEOUT", "Request timeout. The downstream service did not respond in time."),
-                HttpRequestException => 
-                    (StatusCodes.Status503ServiceUnavailable, "SERVICE_UNAVAILABLE", "Downstream service is unavailable"),
+            if (ex is UnauthorizedAccessException)
+            {
+                return new ErrorInfo
+                {
+                    StatusCode = StatusCodes.Status403Forbidden,
+                    ErrorCode = ResponseCode.Unauthorized,
+                    Message = "Forbidden: You do not have permission"
+                };
+            }
 
-                // Default
-                _ => (StatusCodes.Status500InternalServerError, ResponseCode.SystemError, "An unexpected error occurred")
+            // Gateway Resilience errors
+            if (ex is BrokenCircuitException)
+            {
+                return new ErrorInfo
+                {
+                    StatusCode = StatusCodes.Status503ServiceUnavailable,
+                    ErrorCode = "CIRCUIT_BREAKER_OPEN",
+                    Message = "Service temporarily unavailable. Circuit breaker is open."
+                };
+            }
+
+            if (ex is TimeoutRejectedException)
+            {
+                return new ErrorInfo
+                {
+                    StatusCode = StatusCodes.Status504GatewayTimeout,
+                    ErrorCode = "GATEWAY_TIMEOUT",
+                    Message = "Request timeout. The downstream service did not respond in time."
+                };
+            }
+
+            if (ex is HttpRequestException)
+            {
+                return new ErrorInfo
+                {
+                    StatusCode = StatusCodes.Status503ServiceUnavailable,
+                    ErrorCode = "SERVICE_UNAVAILABLE",
+                    Message = "Downstream service is unavailable"
+                };
+            }
+
+            if (ex is ValidationException validationEx)
+            {
+                return new ErrorInfo
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    ErrorCode = validationEx.ErrorCode
+                };
+            }
+
+            // Default
+            return new ErrorInfo
+            {
+                StatusCode = StatusCodes.Status500InternalServerError,
+                ErrorCode = ResponseCode.SystemError,
+                Message = "An unexpected error occurred"
             };
-
-            _logger.LogError(ex, "[{ErrorCode}] {Message}", errorCode, message);
-            await WriteErrorResponse(context, statusCode, message, errorCode);
         }
 
         private bool IsErrorStatusCode(int statusCode) => statusCode >= 400 && statusCode < 600;
@@ -83,12 +138,12 @@ namespace Flex.Infrastructures.Responses
             await WriteErrorResponse(context, context.Response.StatusCode, message, errorCode);
         }
 
-        private async Task WriteErrorResponse(HttpContext context, int statusCode, string message, string errorCode)
+        private async Task WriteErrorResponse(HttpContext context, int statusCode, string message, string errorCode, object? errors = null)
         {
             context.Response.ContentType = "application/json";
             context.Response.StatusCode = statusCode;
 
-            var response = Result.Failure(message: message, errorCode: errorCode);
+            var response = Result.Failure(message: message, errorCode: errorCode, errors: errors);
             await context.Response.WriteAsJsonAsync(response, JsonOptions);
         }
     }
