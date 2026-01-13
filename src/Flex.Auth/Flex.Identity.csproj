@@ -11,8 +11,4 @@
     <ProjectReference Include="..\Flex.Infrastructures\Flex.Infrastructures.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Services\" />
-  </ItemGroup>
-
 </Project>
