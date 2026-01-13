@@ -37,6 +37,9 @@ namespace Flex.Identity.Extensions
             app.UseAuthentication();
             app.UseAuthorization();
 
+            // Map Controllers
+            app.MapControllers();
+
             app.UseRateLimiter();
 
             app.UseSerilogRequestLogging();

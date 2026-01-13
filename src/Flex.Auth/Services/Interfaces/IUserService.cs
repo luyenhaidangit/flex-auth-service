@@ -6,5 +6,8 @@ namespace Flex.Identity.Services.Interfaces
     {
         // Command
         Task<long> CreateAsync(CreateUserCommand request);
+        
+        // Query
+        Task<IEnumerable<UserResponse>> GetAllAsync();
     }
 }

@@ -75,5 +75,26 @@ namespace Flex.Identity.Services
             }
         }
         #endregion
+
+        #region Get All
+        public async Task<IEnumerable<UserResponse>> GetAllAsync()
+        {
+            var users = await _userRepository.GetAllAsync();
+
+            return users.Select(u => new UserResponse
+            {
+                Id = u.Id,
+                UserName = u.UserName,
+                Email = u.Email,
+                FullName = u.FullName,
+                EmailConfirmed = u.EmailConfirmed,
+                PhoneNumberConfirmed = u.PhoneNumberConfirmed,
+                TwoFactorEnabled = u.TwoFactorEnabled,
+                LockoutEnabled = u.LockoutEnabled,
+                AccessFailedCount = u.AccessFailedCount,
+                LockoutEnd = u.LockoutEnd
+            });
+        }
+        #endregion
     }
 }

@@ -24,6 +24,9 @@ namespace Flex.Identity.Extensions
 
         public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
         {
+            // Controllers
+            services.AddControllers();
+
             services.AddOpenApi();
             services.AddEndpointsApiExplorer();
             services.ConfigureSwagger();

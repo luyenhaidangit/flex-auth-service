@@ -34,5 +34,13 @@ namespace Flex.Identity.Repositories
             await _context.SaveChangesAsync(ct);
             return user.Id;
         }
+
+        public async Task<IEnumerable<User>> GetAllAsync(CancellationToken ct = default)
+        {
+            return await _context.Users
+                .AsNoTracking()
+                .OrderBy(u => u.UserName)
+                .ToListAsync(ct);
+        }
     }
 }

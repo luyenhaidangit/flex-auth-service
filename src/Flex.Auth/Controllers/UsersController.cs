@@ -18,6 +18,16 @@ namespace Flex.Identity.Controllers
         }
 
         /// <summary>
+        /// Get all users.
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> GetAllUsers()
+        {
+            var users = await _userService.GetAllAsync();
+            return Ok(Result.Success(users));
+        }
+
+        /// <summary>
         /// Create a new user request.
         /// </summary>
         [HttpPost("create")]
