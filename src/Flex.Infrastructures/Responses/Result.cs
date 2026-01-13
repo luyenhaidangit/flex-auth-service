@@ -13,6 +13,7 @@ namespace Flex.Infrastructures.Responses
         public string? ErrorCode { get; set; }
 
         [JsonPropertyOrder(3)]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? Message { get; set; }
 
         [JsonPropertyOrder(4)]

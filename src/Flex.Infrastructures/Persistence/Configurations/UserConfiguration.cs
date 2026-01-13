@@ -11,6 +11,9 @@ namespace Flex.Infrastructures.Persistence.Configurations
         {
             builder.ToTable("USERS");
 
+            builder.Property(u => u.Id)
+                   .HasColumnName("ID");
+
             builder.Property(u => u.UserName)
                    .HasColumnName("USER_NAME")
                    .HasMaxLength(256);
