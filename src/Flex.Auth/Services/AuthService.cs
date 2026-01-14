@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using System.Security.Claims;
 using ClaimTypesApp = Flex.Infrastructures.Authentication.ClaimTypes;
-using ClaimTypesAsp = System.Security.Claims.ClaimTypes;
 
 namespace Flex.Identity.Services
 {
@@ -20,19 +19,19 @@ namespace Flex.Identity.Services
         private readonly IdentityDbContext _dbContext;
         private readonly IUserRepository _userRepository;
         private readonly IPasswordHasher<User> _passwordHasher;
-        //private readonly IJwtTokenBlacklistService _jwtBacklistTokenService;
+        private readonly ITokenService _tokenService;
         private readonly JwtSettings _jwtSettings;
 
         public AuthService(
             IdentityDbContext dbContext,
             IPasswordHasher<User> passwordHasher,
-            //IJwtTokenBlacklistService jwtBacklistTokenService,
+            ITokenService tokenService,
             IOptions<JwtSettings> jwtSettings,
             IUserRepository userRepository)
         {
             _dbContext = dbContext;
             _passwordHasher = passwordHasher;
-            //_jwtBacklistTokenService = jwtBacklistTokenService;
+            _tokenService = tokenService;
             _jwtSettings = jwtSettings.Value;
             _userRepository = userRepository;
         }
@@ -66,8 +65,7 @@ namespace Flex.Identity.Services
                 new Claim(ClaimTypesApp.Email, user.Email ?? string.Empty),
             };
 
-            //var token = _jwtBacklistTokenService.GenerateToken(_jwtSettings, claims);
-            var token = string.Empty; // Placeholder for generated token
+            var token = _tokenService.GenerateToken(_jwtSettings, claims);
             var result = new LoginResult(token);
 
             return result;
