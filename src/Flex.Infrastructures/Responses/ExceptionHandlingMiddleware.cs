@@ -47,7 +47,6 @@ namespace Flex.Infrastructures.Responses
 
             var errorInfo = this.GetErrorInfo(ex);
 
-            _logger.LogError(ex, "[{ErrorCode}] {Message}", errorInfo.ErrorCode, errorInfo.Message);
             await WriteErrorResponse(context, errorInfo.StatusCode, errorInfo.Message, errorInfo.ErrorCode, errorInfo.Errors);
         }
 
