@@ -455,3 +455,5 @@ secrets/oracle-wallet/*
 !secrets/oracle-wallet/oracle-wallet.md
 
 .env
+
+docs/Auth.md

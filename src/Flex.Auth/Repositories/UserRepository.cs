@@ -1,4 +1,4 @@
-﻿using Flex.Domain.Entities;
+using Flex.Domain.Entities;
 using Flex.Identity.Repositories.Interfaces;
 using Flex.Infrastructures.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -16,7 +16,9 @@ namespace Flex.Identity.Repositories
 
         public Task<User?> GetByUserNameAsync(string userName, CancellationToken ct = default)
         {
-            var result = _context.Users.FirstOrDefaultAsync(u => u.NormalizedUserName == userName.ToUpper(), ct);
+            var normalizedUserName = userName.ToUpperInvariant();
+            var result = _context.Users.AsNoTracking()
+                .FirstOrDefaultAsync(u => u.NormalizedUserName == normalizedUserName, ct);
             return result;
         }
 
@@ -25,6 +27,7 @@ namespace Flex.Identity.Repositories
             var count = await _context.Users.AsNoTracking()
                 .Where(u => u.UserName!.ToLower() == userName.ToLower())
                 .CountAsync(ct);
+
             return count > 0;
         }
 
