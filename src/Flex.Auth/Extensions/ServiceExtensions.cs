@@ -1,6 +1,4 @@
 using Flex.Domain.Entities;
-using Flex.Domain.Events.Users;
-using Flex.Identity.Handlers;
 using Flex.Identity.Repositories;
 using Flex.Identity.Repositories.Interfaces;
 using Flex.Identity.Services;
@@ -89,15 +87,9 @@ namespace Flex.Identity.Extensions
             // Password Hasher
             services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();
 
-            // Domain Events
-            services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
-
             // Integration Events - Outbox
             services.AddScoped<IOutboxWriter, OutboxWriter>();
             services.AddScoped<IOutboxProcessor, OutboxProcessor>();
-
-            // Domain Event Handlers
-            services.AddScoped<IDomainEventHandler<UserLoggedInDomainEvent>, UserLoggedInHandler>();
 
             return services;
         }

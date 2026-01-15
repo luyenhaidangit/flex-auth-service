@@ -22,7 +22,7 @@ namespace Flex.Identity.Services
         private readonly IPasswordHasher<User> _passwordHasher;
         private readonly ITokenService _tokenService;
         private readonly JwtSettings _jwtSettings;
-        private readonly IDomainEventDispatcher _domainEventDispatcher;
+        private readonly IOutboxWriter _outboxWriter;
 
         public AuthService(
             IdentityDbContext dbContext,
@@ -30,14 +30,14 @@ namespace Flex.Identity.Services
             ITokenService tokenService,
             IOptions<JwtSettings> jwtSettings,
             IUserRepository userRepository,
-            IDomainEventDispatcher domainEventDispatcher)
+            IOutboxWriter outboxWriter)
         {
             _dbContext = dbContext;
             _passwordHasher = passwordHasher;
             _tokenService = tokenService;
             _jwtSettings = jwtSettings.Value;
             _userRepository = userRepository;
-            _domainEventDispatcher = domainEventDispatcher;
+            _outboxWriter = outboxWriter;
         }
 
         public async Task<LoginResult> LoginAsync(
@@ -63,32 +63,18 @@ namespace Flex.Identity.Services
                 throw new ValidationException(ResponseCode.InvalidCredentials);
             }
 
-            // Mark user as logged in (raises domain event)
-            // Note: Since GetByUserNameAsync uses AsNoTracking, we need to attach the entity
-            // to track domain events. Alternatively, we can dispatch events directly.
-            // For now, we'll attach the entity to the context to track domain events.
-            _dbContext.Users.Attach(user);
-            user.MarkLoggedIn("ONLINE", ipAddress, userAgent);
+            // Publish event to outbox
+            var loginEvent = new LoginHistoryIntegrationEvent(
+                UserId: user.Id,
+                UserName: user.UserName ?? user.Id.ToString(),
+                LoginType: "ONLINE",
+                IpAddress: ipAddress,
+                UserAgent: userAgent,
+                Result: "SUCCESS"
+            );
 
-            // Collect domain events from all tracked entities
-            var domainEvents = _dbContext.ChangeTracker.Entries<EntityBase<long>>()
-                .SelectMany(e => e.Entity.DomainEvents)
-                .ToList();
-
-            // Save changes (if any) - in this case, we're just tracking for events
+            await _outboxWriter.AddAsync(loginEvent, cancellationToken);
             await _dbContext.SaveChangesAsync(cancellationToken);
-
-            // Dispatch domain events after successful save
-            if (domainEvents.Any())
-            {
-                await _domainEventDispatcher.DispatchAsync(domainEvents, cancellationToken);
-            }
-
-            // Clear domain events from entities
-            foreach (var entry in _dbContext.ChangeTracker.Entries<EntityBase<long>>())
-            {
-                entry.Entity.ClearDomainEvents();
-            }
 
             // Include standard claims
             var claims = new List<Claim>
