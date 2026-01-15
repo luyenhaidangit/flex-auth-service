@@ -1,4 +1,5 @@
-﻿using Flex.Domain.Abstractions;
+using Flex.Domain.Abstractions;
+using Flex.Domain.Events.Users;
 
 namespace Flex.Domain.Entities
 {
@@ -19,5 +20,20 @@ namespace Flex.Domain.Entities
         public bool LockoutEnabled { get; set; } = false;
         public int AccessFailedCount { get; set; } = 0;
         public string FullName { get; set; } = default!;
+
+        /// <summary>
+        /// Marks the user as logged in and raises a domain event.
+        /// This should be called after successful password verification.
+        /// </summary>
+        public void MarkLoggedIn(string loginType, string? ipAddress = null, string? userAgent = null)
+        {
+            RaiseDomainEvent(new UserLoggedInDomainEvent(
+                UserId: Id,
+                UserName: UserName ?? Id.ToString(),
+                LoginType: loginType,
+                IpAddress: ipAddress,
+                UserAgent: userAgent
+            ));
+        }
     }
 }

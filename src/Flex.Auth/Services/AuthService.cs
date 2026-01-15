@@ -1,9 +1,10 @@
-﻿using Flex.Domain.Entities;
+using Flex.Domain.Entities;
 using Flex.Identity.Errors;
 using Flex.Identity.Models.Users;
 using Flex.Identity.Repositories.Interfaces;
 using Flex.Identity.Services.Interfaces;
 using Flex.Infrastructures.Authentication;
+using Flex.Infrastructures.Events;
 using Flex.Infrastructures.Exceptions;
 using Flex.Infrastructures.Persistence;
 using Flex.Infrastructures.Responses;
@@ -21,22 +22,29 @@ namespace Flex.Identity.Services
         private readonly IPasswordHasher<User> _passwordHasher;
         private readonly ITokenService _tokenService;
         private readonly JwtSettings _jwtSettings;
+        private readonly IDomainEventDispatcher _domainEventDispatcher;
 
         public AuthService(
             IdentityDbContext dbContext,
             IPasswordHasher<User> passwordHasher,
             ITokenService tokenService,
             IOptions<JwtSettings> jwtSettings,
-            IUserRepository userRepository)
+            IUserRepository userRepository,
+            IDomainEventDispatcher domainEventDispatcher)
         {
             _dbContext = dbContext;
             _passwordHasher = passwordHasher;
             _tokenService = tokenService;
             _jwtSettings = jwtSettings.Value;
             _userRepository = userRepository;
+            _domainEventDispatcher = domainEventDispatcher;
         }
 
-        public async Task<LoginResult> LoginAsync(LoginRequest request, CancellationToken cancellationToken = default)
+        public async Task<LoginResult> LoginAsync(
+            LoginRequest request, 
+            string? ipAddress = null, 
+            string? userAgent = null,
+            CancellationToken cancellationToken = default)
         {
             var user = await _userRepository.GetByUserNameAsync(request.UserName, cancellationToken);
             if (user is null)
@@ -53,6 +61,33 @@ namespace Flex.Identity.Services
             if (verify == PasswordVerificationResult.Failed)
             {
                 throw new ValidationException(ResponseCode.InvalidCredentials);
+            }
+
+            // Mark user as logged in (raises domain event)
+            // Note: Since GetByUserNameAsync uses AsNoTracking, we need to attach the entity
+            // to track domain events. Alternatively, we can dispatch events directly.
+            // For now, we'll attach the entity to the context to track domain events.
+            _dbContext.Users.Attach(user);
+            user.MarkLoggedIn("ONLINE", ipAddress, userAgent);
+
+            // Collect domain events from all tracked entities
+            var domainEvents = _dbContext.ChangeTracker.Entries<EntityBase<long>>()
+                .SelectMany(e => e.Entity.DomainEvents)
+                .ToList();
+
+            // Save changes (if any) - in this case, we're just tracking for events
+            await _dbContext.SaveChangesAsync(cancellationToken);
+
+            // Dispatch domain events after successful save
+            if (domainEvents.Any())
+            {
+                await _domainEventDispatcher.DispatchAsync(domainEvents, cancellationToken);
+            }
+
+            // Clear domain events from entities
+            foreach (var entry in _dbContext.ChangeTracker.Entries<EntityBase<long>>())
+            {
+                entry.Entity.ClearDomainEvents();
             }
 
             // Include standard claims

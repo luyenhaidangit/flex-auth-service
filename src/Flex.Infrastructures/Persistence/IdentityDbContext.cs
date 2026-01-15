@@ -1,4 +1,4 @@
-﻿using Flex.Domain.Entities;
+using Flex.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Flex.Infrastructures.Persistence
@@ -28,6 +28,8 @@ namespace Flex.Infrastructures.Persistence
         public DbSet<Role> Roles { get; set; }
         public DbSet<RoleClaim> RoleClaims { get; set; }
         public DbSet<Permission> Permissions { get; set; }
+        public DbSet<LoginHistory> LoginHistories { get; set; }
+        public DbSet<OutboxMessage> OutboxMessages { get; set; }
         #endregion
     }
 }

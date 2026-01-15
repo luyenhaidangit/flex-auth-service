@@ -1,10 +1,13 @@
-﻿using Flex.Domain.Entities;
+using Flex.Domain.Entities;
+using Flex.Domain.Events.Users;
+using Flex.Identity.Handlers;
 using Flex.Identity.Repositories;
 using Flex.Identity.Repositories.Interfaces;
 using Flex.Identity.Services;
 using Flex.Identity.Services.Interfaces;
 using Flex.Infrastructures.Authentication;
 using Flex.Infrastructures.EntityFrameworkCore;
+using Flex.Infrastructures.Events;
 using Flex.Infrastructures.Observability;
 using Flex.Infrastructures.OpenApi;
 using Flex.Infrastructures.Persistence;
@@ -50,6 +53,12 @@ namespace Flex.Identity.Extensions
             // Database
             services.ConfigureServiceDbContext<IdentityDbContext>(configuration, useWallet: true);
 
+            // RabbitMQ
+            services.AddRabbitMQ(configuration);
+
+            // Background Services
+            services.AddHostedService<OutboxProcessorBackgroundService>();
+
             // CORS
             services.AddCors(options =>
             {
@@ -79,6 +88,16 @@ namespace Flex.Identity.Extensions
 
             // Password Hasher
             services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();
+
+            // Domain Events
+            services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
+
+            // Integration Events - Outbox
+            services.AddScoped<IOutboxWriter, OutboxWriter>();
+            services.AddScoped<IOutboxProcessor, OutboxProcessor>();
+
+            // Domain Event Handlers
+            services.AddScoped<IDomainEventHandler<UserLoggedInDomainEvent>, UserLoggedInHandler>();
 
             return services;
         }

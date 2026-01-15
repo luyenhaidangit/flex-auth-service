@@ -1,4 +1,4 @@
-﻿using Flex.Identity.Models.Users;
+using Flex.Identity.Models.Users;
 using Flex.Identity.Services.Interfaces;
 using Flex.Infrastructures.Responses;
 using Microsoft.AspNetCore.Authorization;
@@ -26,7 +26,11 @@ namespace Flex.Identity.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Login([FromBody] LoginRequest request, CancellationToken ct)
         {
-            var login = await _authService.LoginAsync(request, ct);
+            // Capture client metadata for audit logging
+            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+            var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
+
+            var login = await _authService.LoginAsync(request, ipAddress, userAgent, ct);
 
             var resutl = Result.Success(login);
 
