@@ -3,14 +3,16 @@ using System.Security.Claims;
 namespace Flex.Infrastructures.Http
 {
     /// <summary>
-    /// Service to access HTTP context information such as IP address, user, headers, etc.
+    /// Accessor to access HTTP request context information such as IP address, user, headers, etc.
     /// </summary>
-    public interface IHttpContextService
+    public interface IRequestContextAccessor
     {
         /// <summary>
         /// Gets the client IP address from the request.
+        /// First tries to get from X-Forwarded-For header (when behind API Gateway),
+        /// then falls back to RemoteIpAddress.
         /// </summary>
-        string? GetIpAddress();
+        string? ClientIp { get; }
 
         /// <summary>
         /// Gets the current user (ClaimsPrincipal) from the HTTP context.

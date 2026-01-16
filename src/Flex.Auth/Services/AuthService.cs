@@ -24,7 +24,7 @@ namespace Flex.Identity.Services
         private readonly ITokenService _tokenService;
         private readonly JwtSettings _jwtSettings;
         private readonly IOutboxWriter _outboxWriter;
-        private readonly IHttpContextService _httpContextService;
+        private readonly IRequestContextAccessor _requestContextAccessor;
 
         public AuthService(
             IdentityDbContext dbContext,
@@ -33,7 +33,7 @@ namespace Flex.Identity.Services
             IOptions<JwtSettings> jwtSettings,
             IUserRepository userRepository,
             IOutboxWriter outboxWriter,
-            IHttpContextService httpContextService)
+            IRequestContextAccessor requestContextAccessor)
         {
             _dbContext = dbContext;
             _passwordHasher = passwordHasher;
@@ -41,7 +41,7 @@ namespace Flex.Identity.Services
             _jwtSettings = jwtSettings.Value;
             _userRepository = userRepository;
             _outboxWriter = outboxWriter;
-            _httpContextService = httpContextService;
+            _requestContextAccessor = requestContextAccessor;
         }
 
         public async Task<LoginResult> LoginAsync(
@@ -67,8 +67,8 @@ namespace Flex.Identity.Services
             }
 
             // Get IP address and user agent from request
-            var ipAddress = _httpContextService.GetIpAddress();
-            var userAgentFromService = _httpContextService.GetUserAgent();
+            var ipAddress = _requestContextAccessor.ClientIp;
+            var userAgentFromService = _requestContextAccessor.GetUserAgent();
             
             // Use userAgent parameter if provided, otherwise get from service
             var finalUserAgent = userAgent ?? userAgentFromService;

@@ -45,7 +45,7 @@ namespace Flex.Identity.Extensions
             services.AddGatewayRateLimiting();
 
             // Resilience (Timeout, Retry, Circuit Breaker, Bulkhead)
-            services.AddHttpContextService();
+            services.AddRequestContextAccessor();
             services.AddTransient<CorrelationIdHandler>();
             services.AddDownstreamResilience(configuration);
 

@@ -5,20 +5,39 @@ using System.Security.Claims;
 namespace Flex.Infrastructures.Http
 {
     /// <summary>
-    /// Implementation of IHttpContextService to access HTTP context information.
+    /// Implementation of IRequestContextAccessor to access HTTP context information.
     /// </summary>
-    public class HttpContextService : IHttpContextService
+    public class RequestContextAccessor : IRequestContextAccessor
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public HttpContextService(IHttpContextAccessor httpContextAccessor)
+        public RequestContextAccessor(IHttpContextAccessor httpContextAccessor)
         {
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public string? GetIpAddress()
+        public string? ClientIp
         {
-            return _httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString();
+            get
+            {
+                var httpContext = _httpContextAccessor.HttpContext;
+                if (httpContext == null)
+                    return null;
+
+                // Get IP from X-Forwarded-For header (API Gateway forwards client IP here)
+                var forwardedFor = httpContext.Request.Headers[HeaderNames.XForwardedFor].ToString();
+                if (!string.IsNullOrEmpty(forwardedFor))
+                {
+                    // X-Forwarded-For can contain multiple IPs: "client-ip, proxy1-ip, proxy2-ip"
+                    // Take the first one (original client IP)
+                    var firstIp = forwardedFor.Split(',')[0].Trim();
+                    if (!string.IsNullOrEmpty(firstIp))
+                        return firstIp;
+                }
+
+                // Fallback to RemoteIpAddress if X-Forwarded-For is not available
+                return httpContext.Connection.RemoteIpAddress?.ToString();
+            }
         }
 
         public ClaimsPrincipal? GetUser()
