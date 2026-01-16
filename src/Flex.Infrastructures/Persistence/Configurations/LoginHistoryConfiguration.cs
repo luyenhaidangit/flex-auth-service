@@ -31,7 +31,7 @@ namespace Flex.Infrastructures.Persistence.Configurations
 
             builder.Property(x => x.Result)
                 .IsRequired()
-                .HasMaxLength(50)
+                .HasMaxLength(1)
                 .IsUnicode(false);
 
             builder.Property(x => x.FailureReason)

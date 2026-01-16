@@ -29,7 +29,7 @@ namespace Flex.Domain.Entities
         public string? IpAddress { get; set; }
 
         /// <summary>
-        /// Login result: SUCCESS or FAILED.
+        /// Login result: Y (Success) or N (Failed).
         /// </summary>
         public string Result { get; set; } = string.Empty;
 
