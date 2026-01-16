@@ -26,7 +26,7 @@ namespace Flex.Identity.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Login([FromBody] LoginRequest request, CancellationToken ct)
         {
-            var login = await _authService.LoginAsync(request, cancellationToken: ct);
+            var login = await _authService.LoginAsync(request, ct);
 
             var resutl = Result.Success(login);
 
