@@ -6,6 +6,7 @@ using Flex.Identity.Services.Interfaces;
 using Flex.Infrastructures.Authentication;
 using Flex.Infrastructures.EntityFrameworkCore;
 using Flex.Infrastructures.Events;
+using Flex.Infrastructures.Http;
 using Flex.Infrastructures.Observability;
 using Flex.Infrastructures.OpenApi;
 using Flex.Infrastructures.Persistence;
@@ -44,7 +45,7 @@ namespace Flex.Identity.Extensions
             services.AddGatewayRateLimiting();
 
             // Resilience (Timeout, Retry, Circuit Breaker, Bulkhead)
-            services.AddHttpContextAccessor();
+            services.AddHttpContextService();
             services.AddTransient<CorrelationIdHandler>();
             services.AddDownstreamResilience(configuration);
 

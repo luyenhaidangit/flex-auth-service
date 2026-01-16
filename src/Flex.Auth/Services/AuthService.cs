@@ -6,9 +6,9 @@ using Flex.Identity.Services.Interfaces;
 using Flex.Infrastructures.Authentication;
 using Flex.Infrastructures.Events;
 using Flex.Infrastructures.Exceptions;
+using Flex.Infrastructures.Http;
 using Flex.Infrastructures.Persistence;
 using Flex.Infrastructures.Responses;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using System.Security.Claims;
@@ -24,7 +24,7 @@ namespace Flex.Identity.Services
         private readonly ITokenService _tokenService;
         private readonly JwtSettings _jwtSettings;
         private readonly IOutboxWriter _outboxWriter;
-        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IHttpContextService _httpContextService;
 
         public AuthService(
             IdentityDbContext dbContext,
@@ -33,7 +33,7 @@ namespace Flex.Identity.Services
             IOptions<JwtSettings> jwtSettings,
             IUserRepository userRepository,
             IOutboxWriter outboxWriter,
-            IHttpContextAccessor httpContextAccessor)
+            IHttpContextService httpContextService)
         {
             _dbContext = dbContext;
             _passwordHasher = passwordHasher;
@@ -41,7 +41,7 @@ namespace Flex.Identity.Services
             _jwtSettings = jwtSettings.Value;
             _userRepository = userRepository;
             _outboxWriter = outboxWriter;
-            _httpContextAccessor = httpContextAccessor;
+            _httpContextService = httpContextService;
         }
 
         public async Task<LoginResult> LoginAsync(
@@ -66,8 +66,12 @@ namespace Flex.Identity.Services
                 throw new ValidationException(ResponseCode.InvalidCredentials);
             }
 
-            // Get IP address from request
-            var ipAddress = _httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString();
+            // Get IP address and user agent from request
+            var ipAddress = _httpContextService.GetIpAddress();
+            var userAgentFromService = _httpContextService.GetUserAgent();
+            
+            // Use userAgent parameter if provided, otherwise get from service
+            var finalUserAgent = userAgent ?? userAgentFromService;
 
             // Publish event to outbox
             var loginEvent = new LoginHistoryIntegrationEvent(
@@ -75,7 +79,7 @@ namespace Flex.Identity.Services
                 UserName: user.UserName ?? user.Id.ToString(),
                 LoginType: "ONLINE",
                 IpAddress: ipAddress,
-                UserAgent: userAgent,
+                UserAgent: finalUserAgent,
                 Result: "SUCCESS"
             );
 
