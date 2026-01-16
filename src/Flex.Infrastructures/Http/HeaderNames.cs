@@ -1,4 +1,4 @@
-﻿namespace Flex.Infrastructures.Headers
+﻿namespace Flex.Infrastructures.Http
 {
     public static class HeaderNames
     {

@@ -1,4 +1,4 @@
-using Flex.Infrastructures.Headers;
+using Flex.Infrastructures.Http;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
 
