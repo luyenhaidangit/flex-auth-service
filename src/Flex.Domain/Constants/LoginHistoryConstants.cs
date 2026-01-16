@@ -39,12 +39,12 @@ namespace Flex.Domain.Constants
             /// <summary>
             /// Successful login.
             /// </summary>
-            public const string Success = "SUCCESS";
+            public const string Success = "Y";
 
             /// <summary>
             /// Failed login.
             /// </summary>
-            public const string Failed = "FAILED";
+            public const string Failed = "N";
         }
     }
 }
