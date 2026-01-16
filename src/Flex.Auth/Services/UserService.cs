@@ -1,11 +1,11 @@
 ﻿using Flex.Domain.Entities;
-using Flex.Identity.Errors;
 using Flex.Identity.Models.Users;
 using Flex.Identity.Repositories.Interfaces;
 using Flex.Identity.Services.Interfaces;
+using Flex.Infrastructures.Exceptions;
 using Flex.Infrastructures.Random;
+using Flex.Infrastructures.Responses;
 using Microsoft.AspNetCore.Identity;
-using System.ComponentModel.DataAnnotations;
 
 namespace Flex.Identity.Services
 {
@@ -71,7 +71,7 @@ namespace Flex.Identity.Services
             // Check if user already exists by username
             if (await _userRepository.ExistsByUserNameAsync(username))
             {
-                throw new ValidationException(ErrorCodes.UserAlreadyExists);
+                throw new ValidationException(ResponseCode.UserAlreadyExists);
             }
         }
         #endregion
