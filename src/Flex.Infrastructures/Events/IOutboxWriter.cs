@@ -1,3 +1,5 @@
+using Flex.Domain.Abstractions;
+
 namespace Flex.Infrastructures.Events
 {
     /// <summary>
@@ -9,6 +11,6 @@ namespace Flex.Infrastructures.Events
         /// <summary>
         /// Adds an integration event to the outbox for later publishing.
         /// </summary>
-        Task AddAsync(IIntegrationEvent integrationEvent, CancellationToken cancellationToken = default);
+        Task AddAsync(IDomainEvent integrationEvent, CancellationToken cancellationToken = default);
     }
 }

@@ -8,5 +8,10 @@ namespace Flex.Domain.Abstractions
     {
         public Guid EventId { get; } = Guid.NewGuid();
         public DateTime OccurredOn { get; } = DateTime.UtcNow;
+
+        /// <summary>
+        /// Event type name. Should be overridden in derived classes to return the class name.
+        /// </summary>
+        public virtual string EventType => GetType().Name;
     }
 }

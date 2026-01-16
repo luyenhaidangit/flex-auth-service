@@ -1,3 +1,4 @@
+using Flex.Domain.Abstractions;
 using RabbitMQ.Client;
 using System.Text;
 using System.Text.Json;
@@ -38,7 +39,7 @@ namespace Flex.Infrastructures.Events
                 autoDelete: options.ExchangeAutoDelete);
         }
 
-        public Task PublishAsync(IIntegrationEvent integrationEvent, CancellationToken cancellationToken = default)
+        public Task PublishAsync(IDomainEvent integrationEvent, CancellationToken cancellationToken = default)
         {
             try
             {

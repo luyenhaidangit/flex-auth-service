@@ -15,5 +15,10 @@ namespace Flex.Domain.Abstractions
         /// When this event occurred (UTC).
         /// </summary>
         DateTime OccurredOn { get; }
+
+        /// <summary>
+        /// Event type name for routing/message type identification.
+        /// </summary>
+        string EventType { get; }
     }
 }

@@ -1,3 +1,4 @@
+using Flex.Domain.Abstractions;
 using Flex.Domain.Entities;
 using Flex.Infrastructures.Persistence;
 using System.Text.Json;
@@ -21,7 +22,7 @@ namespace Flex.Infrastructures.Events
             _dbContext = dbContext;
         }
 
-        public async Task AddAsync(IIntegrationEvent integrationEvent, CancellationToken cancellationToken = default)
+        public async Task AddAsync(IDomainEvent integrationEvent, CancellationToken cancellationToken = default)
         {
             var payload = JsonSerializer.Serialize(integrationEvent, integrationEvent.GetType(), JsonOptions);
 

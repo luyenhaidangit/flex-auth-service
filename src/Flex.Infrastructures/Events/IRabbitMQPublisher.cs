@@ -1,3 +1,5 @@
+using Flex.Domain.Abstractions;
+
 namespace Flex.Infrastructures.Events
 {
     /// <summary>
@@ -8,6 +10,6 @@ namespace Flex.Infrastructures.Events
         /// <summary>
         /// Publishes an integration event to RabbitMQ.
         /// </summary>
-        Task PublishAsync(IIntegrationEvent integrationEvent, CancellationToken cancellationToken = default);
+        Task PublishAsync(IDomainEvent integrationEvent, CancellationToken cancellationToken = default);
     }
 }

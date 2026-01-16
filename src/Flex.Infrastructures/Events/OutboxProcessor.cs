@@ -1,3 +1,4 @@
+using Flex.Domain.Abstractions;
 using Flex.Infrastructures.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -55,7 +56,7 @@ namespace Flex.Infrastructures.Events
                     await _dbContext.SaveChangesAsync(cancellationToken);
 
                     // Deserialize and publish
-                    var assembly = typeof(IIntegrationEvent).Assembly;
+                    var assembly = typeof(IDomainEvent).Assembly;
                     var eventType = assembly.GetType($"Flex.Infrastructures.Events.{message.EventType}");
                     if (eventType == null)
                     {
@@ -63,7 +64,7 @@ namespace Flex.Infrastructures.Events
                     }
 
                     var integrationEvent = JsonSerializer.Deserialize(message.Payload, eventType, JsonOptions);
-                    if (integrationEvent is IIntegrationEvent evt)
+                    if (integrationEvent is IDomainEvent evt)
                     {
                         await _rabbitMQPublisher.PublishAsync(evt, cancellationToken);
 
