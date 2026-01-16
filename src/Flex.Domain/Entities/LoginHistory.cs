@@ -29,11 +29,6 @@ namespace Flex.Domain.Entities
         public string? IpAddress { get; set; }
 
         /// <summary>
-        /// User agent string from the client.
-        /// </summary>
-        public string? UserAgent { get; set; }
-
-        /// <summary>
         /// Login result: SUCCESS or FAILED.
         /// </summary>
         public string Result { get; set; } = string.Empty;

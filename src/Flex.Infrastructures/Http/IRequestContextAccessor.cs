@@ -25,11 +25,6 @@ namespace Flex.Infrastructures.Http
         string? GetClaimValue(string claimType);
 
         /// <summary>
-        /// Gets the User-Agent header value.
-        /// </summary>
-        string? GetUserAgent();
-
-        /// <summary>
         /// Gets a header value by name.
         /// </summary>
         string? GetHeader(string headerName);

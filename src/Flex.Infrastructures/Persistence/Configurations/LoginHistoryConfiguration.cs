@@ -29,10 +29,6 @@ namespace Flex.Infrastructures.Persistence.Configurations
                 .HasMaxLength(50)
                 .IsUnicode(false);
 
-            builder.Property(x => x.UserAgent)
-                .HasMaxLength(500)
-                .IsUnicode(false);
-
             builder.Property(x => x.Result)
                 .IsRequired()
                 .HasMaxLength(50)

@@ -11,7 +11,6 @@ namespace Flex.Domain.Events.Users
         long UserId,
         string UserName,
         string LoginType,  // ONLINE | TELLER
-        string? IpAddress,
-        string? UserAgent
+        string? IpAddress
     ) : DomainEvent;
 }

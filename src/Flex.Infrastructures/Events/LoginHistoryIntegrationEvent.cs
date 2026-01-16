@@ -8,7 +8,6 @@ namespace Flex.Infrastructures.Events
         string UserName,
         string LoginType,  // ONLINE | TELLER
         string? IpAddress,
-        string? UserAgent,
         string Result,  // SUCCESS | FAILED
         string? FailureReason = null
     ) : IntegrationEvent;

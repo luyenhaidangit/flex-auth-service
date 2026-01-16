@@ -50,11 +50,6 @@ namespace Flex.Infrastructures.Http
             return _httpContextAccessor.HttpContext?.User?.FindFirstValue(claimType);
         }
 
-        public string? GetUserAgent()
-        {
-            return GetHeader("User-Agent");
-        }
-
         public string? GetHeader(string headerName)
         {
             if (string.IsNullOrEmpty(headerName))

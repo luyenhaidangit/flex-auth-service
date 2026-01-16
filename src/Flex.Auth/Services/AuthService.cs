@@ -46,7 +46,6 @@ namespace Flex.Identity.Services
 
         public async Task<LoginResult> LoginAsync(
             LoginRequest request, 
-            string? userAgent = null,
             CancellationToken cancellationToken = default)
         {
             var user = await _userRepository.GetByUserNameAsync(request.UserName, cancellationToken);
@@ -66,12 +65,8 @@ namespace Flex.Identity.Services
                 throw new ValidationException(ResponseCode.InvalidCredentials);
             }
 
-            // Get IP address and user agent from request
+            // Get IP address from request
             var ipAddress = _requestContextAccessor.ClientIp;
-            var userAgentFromService = _requestContextAccessor.GetUserAgent();
-            
-            // Use userAgent parameter if provided, otherwise get from service
-            var finalUserAgent = userAgent ?? userAgentFromService;
 
             // Publish event to outbox
             var loginEvent = new LoginHistoryIntegrationEvent(
@@ -79,7 +74,6 @@ namespace Flex.Identity.Services
                 UserName: user.UserName ?? user.Id.ToString(),
                 LoginType: "ONLINE",
                 IpAddress: ipAddress,
-                UserAgent: finalUserAgent,
                 Result: "SUCCESS"
             );
 
