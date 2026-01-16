@@ -45,11 +45,10 @@ namespace Flex.Identity.Services
             _requestContextAccessor = requestContextAccessor;
         }
 
-        public async Task<LoginResult> LoginAsync(
-            LoginRequest request, 
-            CancellationToken cancellationToken = default)
+        public async Task<LoginResult> LoginAsync(LoginRequest request, CancellationToken ct = default)
         {
-            var user = await _userRepository.GetByUserNameAsync(request.UserName, cancellationToken);
+            // Validate
+            var user = await _userRepository.GetByUserNameAsync(request.UserName, ct);
             if (user is null)
             {
                 throw new ValidationException(ResponseCode.InvalidCredentials);
@@ -75,8 +74,8 @@ namespace Flex.Identity.Services
                 IpAddress: ipAddress
             );
 
-            await _outboxWriter.AddAsync(loginEvent, cancellationToken);
-            await _dbContext.SaveChangesAsync(cancellationToken);
+            await _outboxWriter.AddAsync(loginEvent, ct);
+            await _dbContext.SaveChangesAsync(ct);
 
             // Include standard claims
             var claims = new List<Claim>
