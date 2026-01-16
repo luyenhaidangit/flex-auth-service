@@ -1,11 +1,11 @@
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Flex.Infrastructures.Headers
+namespace Flex.Infrastructures.Http
 {
     /// <summary>
-    /// Extension methods for registering HTTP context and header services.
+    /// Extension methods for registering HTTP context services.
     /// </summary>
-    public static class HeaderExtensions
+    public static class HttpExtensions
     {
         /// <summary>
         /// Adds HTTP context service to the service collection.

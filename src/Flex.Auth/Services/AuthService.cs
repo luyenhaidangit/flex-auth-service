@@ -6,7 +6,7 @@ using Flex.Identity.Services.Interfaces;
 using Flex.Infrastructures.Authentication;
 using Flex.Infrastructures.Events;
 using Flex.Infrastructures.Exceptions;
-using Flex.Infrastructures.Headers;
+using Flex.Infrastructures.Http;
 using Flex.Infrastructures.Persistence;
 using Flex.Infrastructures.Responses;
 using Microsoft.AspNetCore.Identity;
