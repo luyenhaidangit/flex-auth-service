@@ -2,7 +2,6 @@ namespace Flex.Infrastructures.Events
 {
     /// <summary>
     /// Integration event published when a user login attempt is recorded.
-    /// This event is sent to RabbitMQ for consumption by other services (e.g., audit service, analytics).
     /// </summary>
     public sealed record LoginHistoryIntegrationEvent(
         long UserId,
