@@ -27,10 +27,9 @@ namespace Flex.Identity.Controllers
         public async Task<IActionResult> Login([FromBody] LoginRequest request, CancellationToken ct)
         {
             // Capture client metadata for audit logging
-            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
             var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
 
-            var login = await _authService.LoginAsync(request, ipAddress, userAgent, ct);
+            var login = await _authService.LoginAsync(request, userAgent, ct);
 
             var resutl = Result.Success(login);
 

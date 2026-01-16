@@ -8,6 +8,7 @@ using Flex.Infrastructures.Events;
 using Flex.Infrastructures.Exceptions;
 using Flex.Infrastructures.Persistence;
 using Flex.Infrastructures.Responses;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using System.Security.Claims;
@@ -23,6 +24,7 @@ namespace Flex.Identity.Services
         private readonly ITokenService _tokenService;
         private readonly JwtSettings _jwtSettings;
         private readonly IOutboxWriter _outboxWriter;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
         public AuthService(
             IdentityDbContext dbContext,
@@ -30,7 +32,8 @@ namespace Flex.Identity.Services
             ITokenService tokenService,
             IOptions<JwtSettings> jwtSettings,
             IUserRepository userRepository,
-            IOutboxWriter outboxWriter)
+            IOutboxWriter outboxWriter,
+            IHttpContextAccessor httpContextAccessor)
         {
             _dbContext = dbContext;
             _passwordHasher = passwordHasher;
@@ -38,11 +41,11 @@ namespace Flex.Identity.Services
             _jwtSettings = jwtSettings.Value;
             _userRepository = userRepository;
             _outboxWriter = outboxWriter;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<LoginResult> LoginAsync(
             LoginRequest request, 
-            string? ipAddress = null, 
             string? userAgent = null,
             CancellationToken cancellationToken = default)
         {
@@ -62,6 +65,9 @@ namespace Flex.Identity.Services
             {
                 throw new ValidationException(ResponseCode.InvalidCredentials);
             }
+
+            // Get IP address from request
+            var ipAddress = _httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString();
 
             // Publish event to outbox
             var loginEvent = new LoginHistoryIntegrationEvent(

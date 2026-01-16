@@ -7,7 +7,6 @@ namespace Flex.Identity.Services.Interfaces
     {
         Task<LoginResult> LoginAsync(
             LoginRequest request, 
-            string? ipAddress = null, 
             string? userAgent = null,
             CancellationToken ct = default);
         //Task<bool> LogoutAsync(ClaimsPrincipal user, CancellationToken cancellationToken = default);
