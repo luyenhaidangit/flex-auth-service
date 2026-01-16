@@ -2,7 +2,7 @@ using Flex.Infrastructures.Headers;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
 
-namespace Flex.Infrastructures.Http
+namespace Flex.Infrastructures.Observability
 {
     /// <summary>
     /// Implementation of IHttpContextService to access HTTP context information.
