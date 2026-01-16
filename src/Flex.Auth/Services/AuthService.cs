@@ -66,10 +66,8 @@ namespace Flex.Identity.Services
                 throw new ValidationException(ResponseCode.InvalidCredentials);
             }
 
-            // Get IP address from request
-            var ipAddress = _requestContextAccessor.ClientIp;
-
             // Publish success event to outbox
+            var ipAddress = _requestContextAccessor.ClientIp;
             var loginEvent = new UserLoggedInSuccessEvent(
                 UserId: user.Id,
                 UserName: user.UserName ?? user.Id.ToString(),
