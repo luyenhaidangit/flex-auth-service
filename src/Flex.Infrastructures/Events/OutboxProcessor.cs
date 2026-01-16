@@ -1,6 +1,6 @@
-using Flex.Domain.Entities;
 using Flex.Infrastructures.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System.Text.Json;
 
 namespace Flex.Infrastructures.Events

@@ -1,6 +1,5 @@
 using Flex.Domain.Constants;
 using Flex.Domain.Entities;
-using Flex.Identity.Errors;
 using Flex.Identity.Models.Users;
 using Flex.Identity.Repositories.Interfaces;
 using Flex.Identity.Services.Interfaces;
