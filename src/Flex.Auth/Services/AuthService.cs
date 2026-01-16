@@ -1,3 +1,4 @@
+using Flex.Domain.Constants;
 using Flex.Domain.Entities;
 using Flex.Identity.Errors;
 using Flex.Identity.Models.Users;
@@ -65,16 +66,14 @@ namespace Flex.Identity.Services
                 throw new ValidationException(ResponseCode.InvalidCredentials);
             }
 
-            // Get IP address from request
-            var ipAddress = _requestContextAccessor.ClientIp;
-
             // Publish event to outbox
+            var ipAddress = _requestContextAccessor.ClientIp;
             var loginEvent = new LoginHistoryIntegrationEvent(
                 UserId: user.Id,
                 UserName: user.UserName ?? user.Id.ToString(),
-                LoginType: "ONLINE",
+                LoginType: LoginHistoryConstants.LoginType.User,
                 IpAddress: ipAddress,
-                Result: "SUCCESS"
+                Result: LoginHistoryConstants.Result.Success
             );
 
             await _outboxWriter.AddAsync(loginEvent, cancellationToken);

@@ -6,9 +6,9 @@ namespace Flex.Infrastructures.Events
     public sealed record LoginHistoryIntegrationEvent(
         long UserId,
         string UserName,
-        string LoginType,  // ONLINE | TELLER
+        string LoginType,
         string? IpAddress,
-        string Result,  // SUCCESS | FAILED
+        string Result,
         string? FailureReason = null
     ) : IntegrationEvent;
 }

@@ -19,7 +19,7 @@ namespace Flex.Domain.Entities
         public string UserName { get; set; } = string.Empty;
 
         /// <summary>
-        /// Login type: ONLINE or TELLER.
+        /// Login type: USER, SERVICE, SYSTEM, or ADMIN.
         /// </summary>
         public string LoginType { get; set; } = string.Empty;
 
