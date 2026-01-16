@@ -6,6 +6,7 @@ using Flex.Identity.Services.Interfaces;
 using Flex.Infrastructures.Authentication;
 using Flex.Infrastructures.EntityFrameworkCore;
 using Flex.Infrastructures.Events;
+using Flex.Infrastructures.Headers;
 using Flex.Infrastructures.Observability;
 using Flex.Infrastructures.OpenApi;
 using Flex.Infrastructures.Persistence;

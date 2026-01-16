@@ -1,6 +1,6 @@
 using System.Security.Claims;
 
-namespace Flex.Infrastructures.Observability
+namespace Flex.Infrastructures.Headers
 {
     /// <summary>
     /// Service to access HTTP context information such as IP address, user, headers, etc.

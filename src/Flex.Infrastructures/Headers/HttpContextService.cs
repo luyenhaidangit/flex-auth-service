@@ -1,8 +1,7 @@
-using Flex.Infrastructures.Headers;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
 
-namespace Flex.Infrastructures.Observability
+namespace Flex.Infrastructures.Headers
 {
     /// <summary>
     /// Implementation of IHttpContextService to access HTTP context information.
@@ -33,7 +32,7 @@ namespace Flex.Infrastructures.Observability
 
         public string? GetUserAgent()
         {
-            return GetHeader(HeaderNames.UserAgent);
+            return GetHeader("User-Agent");
         }
 
         public string? GetHeader(string headerName)
