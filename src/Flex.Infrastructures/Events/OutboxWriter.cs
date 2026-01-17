@@ -11,11 +11,6 @@ namespace Flex.Infrastructures.Events
     public class OutboxWriter : IOutboxWriter
     {
         private readonly IdentityDbContext _dbContext;
-        private static readonly JsonSerializerOptions JsonOptions = new()
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            WriteIndented = false
-        };
 
         public OutboxWriter(IdentityDbContext dbContext)
         {
@@ -24,7 +19,7 @@ namespace Flex.Infrastructures.Events
 
         public async Task AddAsync(IDomainEvent integrationEvent, CancellationToken cancellationToken = default)
         {
-            var payload = JsonSerializer.Serialize(integrationEvent, integrationEvent.GetType(), JsonOptions);
+            var payload = JsonSerializer.Serialize(integrationEvent, integrationEvent.GetType(), EventJsonOptions.Default);
 
             var outboxMessage = new OutboxMessage
             {

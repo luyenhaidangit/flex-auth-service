@@ -13,11 +13,6 @@ namespace Flex.Infrastructures.Events
         private readonly RabbitMQOptions _options;
         private readonly IConnection _connection;
         private readonly IModel _channel;
-        private static readonly JsonSerializerOptions JsonOptions = new()
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            WriteIndented = false
-        };
 
         public RabbitMQPublisher(RabbitMQOptions options)
         {
@@ -43,7 +38,7 @@ namespace Flex.Infrastructures.Events
         {
             try
             {
-                var message = JsonSerializer.Serialize(integrationEvent, integrationEvent.GetType(), JsonOptions);
+                var message = JsonSerializer.Serialize(integrationEvent, integrationEvent.GetType(), EventJsonOptions.Default);
                 var body = Encoding.UTF8.GetBytes(message);
 
                 var properties = _channel.CreateBasicProperties();

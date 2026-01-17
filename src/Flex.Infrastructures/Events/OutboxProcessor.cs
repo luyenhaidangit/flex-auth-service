@@ -14,11 +14,6 @@ namespace Flex.Infrastructures.Events
         private readonly IdentityDbContext _dbContext;
         private readonly IRabbitMQPublisher _rabbitMQPublisher;
         private readonly ILogger<OutboxProcessor> _logger;
-        private static readonly JsonSerializerOptions JsonOptions = new()
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            PropertyNameCaseInsensitive = true
-        };
 
         public OutboxProcessor(
             IdentityDbContext dbContext,
@@ -63,7 +58,7 @@ namespace Flex.Infrastructures.Events
                         throw new InvalidOperationException($"Event type {message.EventType} not found in assembly {assembly.FullName}");
                     }
 
-                    var integrationEvent = JsonSerializer.Deserialize(message.Payload, eventType, JsonOptions);
+                    var integrationEvent = JsonSerializer.Deserialize(message.Payload, eventType, EventJsonOptions.Default);
                     if (integrationEvent is IDomainEvent evt)
                     {
                         await _rabbitMQPublisher.PublishAsync(evt, cancellationToken);
