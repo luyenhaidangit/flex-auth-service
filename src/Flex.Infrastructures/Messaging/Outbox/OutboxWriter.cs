@@ -25,9 +25,9 @@ namespace Flex.Infrastructures.Messaging.Outbox
 
             var outboxMessage = new OutboxMessage
             {
-                EventType = integrationEvent.EventType,
+                EventType = integrationEvent.GetType().Name,
                 Payload = payload,
-                OccurredOn = integrationEvent.OccurredOn,
+                OccurredOn = DateTime.UtcNow,
                 Status = OutboxMessageStatus.Pending,
                 RetryCount = 0
             };

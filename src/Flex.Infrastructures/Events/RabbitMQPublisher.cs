@@ -43,21 +43,21 @@ namespace Flex.Infrastructures.Events
                 var body = Encoding.UTF8.GetBytes(message);
 
                 var properties = _channel.CreateBasicProperties();
-                properties.MessageId = integrationEvent.EventId.ToString();
-                properties.Timestamp = new AmqpTimestamp(
-                    new DateTimeOffset(integrationEvent.OccurredOn).ToUnixTimeSeconds());
-                properties.Type = integrationEvent.EventType;
+                //properties.MessageId = integrationEvent.EventId.ToString();
+                //properties.Timestamp = new AmqpTimestamp(
+                //    new DateTimeOffset(integrationEvent.OccurredOn).ToUnixTimeSeconds());
+                //properties.Type = integrationEvent.EventType;
                 properties.Persistent = true; // Make messages persistent
 
                 // Routing key format: event.type (e.g., "login.history")
-                var routingKey = integrationEvent.EventType
-                    .Replace("IntegrationEvent", "")
-                    .ToLowerInvariant()
-                    .Replace(".", "-");
+                //var routingKey = integrationEvent.EventType
+                //    .Replace("IntegrationEvent", "")
+                //    .ToLowerInvariant()
+                //    .Replace(".", "-");
 
                 _channel.BasicPublish(
                     exchange: _options.ExchangeName,
-                    routingKey: routingKey,
+                    routingKey: "",
                     basicProperties: properties,
                     body: body);
 
@@ -67,7 +67,7 @@ namespace Flex.Infrastructures.Events
             {
                 // Log error and rethrow - caller should handle retry
                 throw new InvalidOperationException(
-                    $"Failed to publish integration event {integrationEvent.EventType} to RabbitMQ", ex);
+                    $"Failed to publish integration event {integrationEvent.GetType().Name} to RabbitMQ", ex);
             }
         }
 
