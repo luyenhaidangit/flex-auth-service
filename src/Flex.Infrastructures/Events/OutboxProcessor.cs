@@ -1,4 +1,5 @@
 using Flex.Domain.Abstractions;
+using Flex.Domain.Constants;
 using Flex.Infrastructures.Json;
 using Flex.Infrastructures.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -30,7 +31,7 @@ namespace Flex.Infrastructures.Events
         {
             // Get pending messages (limit to avoid processing too many at once)
             var pendingMessages = await _dbContext.OutboxMessages
-                .Where(x => x.Status == "Pending")
+                .Where(x => x.Status == OutboxMessageStatus.Pending)
                 .OrderBy(x => x.OccurredOn)
                 .Take(50) // Process in batches
                 .ToListAsync(cancellationToken);
@@ -47,7 +48,7 @@ namespace Flex.Infrastructures.Events
                 try
                 {
                     // Mark as processing
-                    message.Status = "Processing";
+                    message.Status = OutboxMessageStatus.Processing;
                     message.ProcessedOn = DateTime.UtcNow;
                     await _dbContext.SaveChangesAsync(cancellationToken);
 
@@ -65,7 +66,7 @@ namespace Flex.Infrastructures.Events
                         await _rabbitMQPublisher.PublishAsync(evt, cancellationToken);
 
                         // Mark as processed
-                        message.Status = "Processed";
+                        message.Status = OutboxMessageStatus.Processed;
                         message.ErrorMessage = null;
                         await _dbContext.SaveChangesAsync(cancellationToken);
 
@@ -83,7 +84,7 @@ namespace Flex.Infrastructures.Events
                         message.Id, message.EventType);
 
                     // Mark as failed and increment retry count
-                    message.Status = "Failed";
+                    message.Status = OutboxMessageStatus.Failed;
                     message.RetryCount++;
                     message.ErrorMessage = ex.Message.Length > 2000 ? ex.Message[..2000] : ex.Message;
                     message.ProcessedOn = DateTime.UtcNow;
@@ -91,12 +92,12 @@ namespace Flex.Infrastructures.Events
                     // If retry count exceeds threshold, mark as permanently failed
                     if (message.RetryCount >= 5)
                     {
-                        message.Status = "PermanentlyFailed";
+                        message.Status = OutboxMessageStatus.PermanentlyFailed;
                     }
                     else
                     {
                         // Reset to Pending for retry
-                        message.Status = "Pending";
+                        message.Status = OutboxMessageStatus.Pending;
                     }
 
                     await _dbContext.SaveChangesAsync(cancellationToken);

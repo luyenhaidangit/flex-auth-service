@@ -1,4 +1,5 @@
 ﻿using Flex.Domain.Abstractions;
+using Flex.Domain.Constants;
 using Flex.Domain.Entities;
 using Flex.Infrastructures.Json;
 using Flex.Infrastructures.Persistence;
@@ -27,7 +28,7 @@ namespace Flex.Infrastructures.Messaging.Outbox
                 EventType = integrationEvent.EventType,
                 Payload = payload,
                 OccurredOn = integrationEvent.OccurredOn,
-                Status = "Pending",
+                Status = OutboxMessageStatus.Pending,
                 RetryCount = 0
             };
 

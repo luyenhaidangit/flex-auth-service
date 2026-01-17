@@ -1,3 +1,4 @@
+using Flex.Domain.Constants;
 using Flex.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -26,9 +27,9 @@ namespace Flex.Infrastructures.Persistence.Configurations
 
             builder.Property(x => x.Status)
                 .IsRequired()
-                .HasMaxLength(50)
+                .HasMaxLength(10)
                 .IsUnicode(false)
-                .HasDefaultValue("Pending");
+                .HasDefaultValue(OutboxMessageStatus.Pending);
 
             builder.Property(x => x.RetryCount)
                 .IsRequired()

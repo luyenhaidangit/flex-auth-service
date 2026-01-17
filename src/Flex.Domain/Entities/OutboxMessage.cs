@@ -1,4 +1,5 @@
 using Flex.Domain.Abstractions;
+using Flex.Domain.Constants;
 
 namespace Flex.Domain.Entities
 {
@@ -24,9 +25,9 @@ namespace Flex.Domain.Entities
         public DateTime OccurredOn { get; set; }
 
         /// <summary>
-        /// Processing status: Pending, Processing, Processed, Failed.
+        /// Processing status: P (Pending), PR (Processing), PD (Processed), F (Failed), PF (PermanentlyFailed).
         /// </summary>
-        public string Status { get; set; } = "Pending";
+        public string Status { get; set; } = OutboxMessageStatus.Pending;
 
         /// <summary>
         /// Number of processing attempts.
