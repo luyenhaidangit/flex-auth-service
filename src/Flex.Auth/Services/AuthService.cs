@@ -5,7 +5,7 @@ using Flex.Identity.Models.Users;
 using Flex.Identity.Repositories.Interfaces;
 using Flex.Identity.Services.Interfaces;
 using Flex.Infrastructures.Authentication;
-using Flex.Infrastructures.Events;
+using Flex.Infrastructures.Messaging.Outbox;
 using Flex.Infrastructures.Exceptions;
 using Flex.Infrastructures.Http;
 using Flex.Infrastructures.Persistence;
