@@ -54,10 +54,10 @@ namespace Flex.Identity.Extensions
             services.ConfigureServiceDbContext<IdentityDbContext>(configuration, useWallet: true);
 
             // RabbitMQ
-            services.AddRabbitMQ(configuration);
+            // services.AddRabbitMQ(configuration);
 
             // Background Services
-            services.AddHostedService<OutboxProcessorBackgroundService>();
+            // services.AddHostedService<OutboxProcessorBackgroundService>();
 
             // CORS
             services.AddCors(options =>
@@ -91,7 +91,7 @@ namespace Flex.Identity.Extensions
 
             // Integration Events - Outbox
             services.AddScoped<IOutboxWriter, OutboxWriter>();
-            services.AddScoped<IOutboxProcessor, OutboxProcessor>();
+            // services.AddScoped<IOutboxProcessor, OutboxProcessor>();
 
             return services;
         }
