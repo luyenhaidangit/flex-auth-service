@@ -5,6 +5,7 @@ using Flex.Identity.Services;
 using Flex.Identity.Services.Interfaces;
 using Flex.Infrastructures.Authentication;
 using Flex.Infrastructures.EntityFrameworkCore;
+using Flex.Infrastructures.Events;
 using Flex.Infrastructures.Messaging.Outbox;
 using Flex.Infrastructures.Http;
 using Flex.Infrastructures.Observability;
