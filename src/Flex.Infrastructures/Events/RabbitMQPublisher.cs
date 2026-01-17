@@ -1,4 +1,5 @@
 using Flex.Domain.Abstractions;
+using Flex.Infrastructures.Json;
 using RabbitMQ.Client;
 using System.Text;
 using System.Text.Json;
@@ -38,7 +39,7 @@ namespace Flex.Infrastructures.Events
         {
             try
             {
-                var message = JsonSerializer.Serialize(integrationEvent, integrationEvent.GetType(), EventJsonOptions.Default);
+                var message = JsonSerializer.Serialize(integrationEvent, integrationEvent.GetType(), JsonOptions.Default);
                 var body = Encoding.UTF8.GetBytes(message);
 
                 var properties = _channel.CreateBasicProperties();

@@ -1,4 +1,5 @@
 using Flex.Domain.Abstractions;
+using Flex.Infrastructures.Json;
 using Flex.Infrastructures.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -58,7 +59,7 @@ namespace Flex.Infrastructures.Events
                         throw new InvalidOperationException($"Event type {message.EventType} not found in assembly {assembly.FullName}");
                     }
 
-                    var integrationEvent = JsonSerializer.Deserialize(message.Payload, eventType, EventJsonOptions.Default);
+                    var integrationEvent = JsonSerializer.Deserialize(message.Payload, eventType, JsonOptions.Default);
                     if (integrationEvent is IDomainEvent evt)
                     {
                         await _rabbitMQPublisher.PublishAsync(evt, cancellationToken);

@@ -1,4 +1,5 @@
 using Flex.Infrastructures.Exceptions;
+using Flex.Infrastructures.Json;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
@@ -15,7 +16,6 @@ namespace Flex.Infrastructures.Responses
     {
         private readonly RequestDelegate _next;
         private readonly ILogger<ExceptionHandlingMiddleware> _logger;
-        private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
 
         public ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
         {
@@ -143,7 +143,7 @@ namespace Flex.Infrastructures.Responses
             context.Response.StatusCode = statusCode;
 
             var response = Result.Failure(message: message, errorCode: errorCode, errors: errors);
-            await context.Response.WriteAsJsonAsync(response, JsonOptions);
+            await context.Response.WriteAsJsonAsync(response, JsonOptions.Default);
         }
     }
 }

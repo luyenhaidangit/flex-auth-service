@@ -1,12 +1,12 @@
 using System.Text.Json;
 
-namespace Flex.Infrastructures.Events
+namespace Flex.Infrastructures.Json
 {
     /// <summary>
     /// Shared JSON serializer options for domain events serialization/deserialization.
     /// Ensures consistency across OutboxWriter, OutboxProcessor, and RabbitMQPublisher.
     /// </summary>
-    public static class EventJsonOptions
+    public static class JsonOptions
     {
         /// <summary>
         /// JSON serializer options for domain events.

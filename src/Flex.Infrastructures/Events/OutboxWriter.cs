@@ -1,5 +1,6 @@
 using Flex.Domain.Abstractions;
 using Flex.Domain.Entities;
+using Flex.Infrastructures.Json;
 using Flex.Infrastructures.Persistence;
 using System.Text.Json;
 
@@ -19,7 +20,7 @@ namespace Flex.Infrastructures.Events
 
         public async Task AddAsync(IDomainEvent integrationEvent, CancellationToken cancellationToken = default)
         {
-            var payload = JsonSerializer.Serialize(integrationEvent, integrationEvent.GetType(), EventJsonOptions.Default);
+            var payload = JsonSerializer.Serialize(integrationEvent, integrationEvent.GetType(), JsonOptions.Default);
 
             var outboxMessage = new OutboxMessage
             {

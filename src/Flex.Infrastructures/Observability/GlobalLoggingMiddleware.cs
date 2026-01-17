@@ -24,11 +24,6 @@ public class GlobalLoggingMiddleware
     private readonly RequestDelegate _next;
     private readonly ILogger<GlobalLoggingMiddleware> _logger;
     private readonly LoggingOptions _options;
-    private static readonly JsonSerializerOptions JsonOptions = new() 
-    { 
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        WriteIndented = false
-    };
 
     public GlobalLoggingMiddleware(
         RequestDelegate next, 

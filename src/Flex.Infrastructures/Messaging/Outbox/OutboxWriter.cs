@@ -1,5 +1,6 @@
 ﻿using Flex.Domain.Abstractions;
 using Flex.Domain.Entities;
+using Flex.Infrastructures.Json;
 using Flex.Infrastructures.Persistence;
 using System.Text.Json;
 
@@ -11,11 +12,6 @@ namespace Flex.Infrastructures.Messaging.Outbox
     public class OutboxWriter : IOutboxWriter
     {
         private readonly IdentityDbContext _dbContext;
-        private static readonly JsonSerializerOptions JsonOptions = new()
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            WriteIndented = false
-        };
 
         public OutboxWriter(IdentityDbContext dbContext)
         {
@@ -24,7 +20,7 @@ namespace Flex.Infrastructures.Messaging.Outbox
 
         public async Task AddAsync(IDomainEvent integrationEvent, CancellationToken cancellationToken = default)
         {
-            var payload = JsonSerializer.Serialize(integrationEvent, integrationEvent.GetType(), JsonOptions);
+            var payload = JsonSerializer.Serialize(integrationEvent, integrationEvent.GetType(), JsonOptions.Default);
 
             var outboxMessage = new OutboxMessage
             {
