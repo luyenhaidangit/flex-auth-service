@@ -1,18 +1,19 @@
 using Flex.Domain.Events.Users;
+using Flex.Infrastructures.Messaging.Outbox;
 using Flex.Infrastructures.Messaging.RabbitMQ;
 using Microsoft.Extensions.Options;
 
-namespace Flex.Infrastructures.Messaging.Outbox
+namespace Flex.Identity.Events
 {
     /// <summary>
-    /// Default implementation of IEventRoutingResolver that maps event types to RabbitMQ routing.
-    /// Application layer can override this to customize routing strategy.
+    /// Application-level implementation of IEventRoutingResolver that maps event types to RabbitMQ routing.
+    /// This is where business logic for event routing is defined.
     /// </summary>
-    public sealed class DefaultEventRoutingResolver : IEventRoutingResolver
+    public sealed class EventRoutingResolver : IEventRoutingResolver
     {
         private readonly RabbitMQOptions _options;
 
-        public DefaultEventRoutingResolver(IOptions<RabbitMQOptions> options)
+        public EventRoutingResolver(IOptions<RabbitMQOptions> options)
         {
             _options = options.Value;
         }
@@ -41,7 +42,7 @@ namespace Flex.Infrastructures.Messaging.Outbox
 
             throw new InvalidOperationException(
                 $"No routing defined for {eventType.Name}. " +
-                $"Please configure routing in {nameof(IEventRoutingResolver)} implementation or register a custom resolver.");
+                $"Please configure routing in {nameof(IEventRoutingResolver)} implementation.");
         }
     }
 }

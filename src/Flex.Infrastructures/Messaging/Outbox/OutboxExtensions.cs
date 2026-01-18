@@ -15,9 +15,6 @@ namespace Flex.Infrastructures.Messaging.Outbox
         /// </summary>
         public static IServiceCollection AddOutbox(this IServiceCollection services)
         {
-            // Register event routing resolver. Application layer can override this.
-            services.AddSingleton<IEventRoutingResolver, DefaultEventRoutingResolver>();
-
             // Register outbox services
             services.AddScoped<IOutboxWriter, OutboxWriter>();
             services.AddScoped<IOutboxProcessor, OutboxProcessor>();

@@ -1,4 +1,5 @@
 using Flex.Domain.Entities;
+using Flex.Identity.Events;
 using Flex.Identity.Repositories;
 using Flex.Identity.Repositories.Interfaces;
 using Flex.Identity.Services;
@@ -55,6 +56,7 @@ namespace Flex.Identity.Extensions
 
             // Message queue
             services.AddRabbitMQ(configuration);
+            services.AddSingleton<IEventRoutingResolver, EventRoutingResolver>();
             services.AddOutbox();
 
             // Background Services
