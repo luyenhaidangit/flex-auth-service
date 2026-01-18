@@ -15,11 +15,9 @@ namespace Flex.Infrastructures.Messaging.Outbox
         /// and IOutboxProcessor for processing pending messages.
         /// Application layer can override IEventRoutingResolver to customize routing strategy.
         /// </summary>
-        /// <param name="services">The service collection.</param>
-        /// <returns>The service collection for chaining.</returns>
         public static IServiceCollection AddOutbox(this IServiceCollection services)
         {
-            // Register event routing resolver (Application layer can override this)
+            // Register event routing resolver. Application layer can override this.
             services.AddSingleton<IEventRoutingResolver, DefaultEventRoutingResolver>();
 
             // Register outbox services

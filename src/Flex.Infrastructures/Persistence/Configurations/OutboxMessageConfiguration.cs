@@ -26,6 +26,18 @@ namespace Flex.Infrastructures.Persistence.Configurations
                 .IsRequired()
                 .HasColumnType("CLOB");
 
+            builder.Property(x => x.Exchange)
+                .HasColumnName("EXCHANGE")
+                .IsRequired()
+                .HasMaxLength(200)
+                .IsUnicode(false);
+
+            builder.Property(x => x.RoutingKey)
+                .HasColumnName("ROUTING_KEY")
+                .IsRequired()
+                .HasMaxLength(200)
+                .IsUnicode(false);
+
             builder.Property(x => x.OccurredOn)
                 .HasColumnName("OCCURRED_ON")
                 .IsRequired();

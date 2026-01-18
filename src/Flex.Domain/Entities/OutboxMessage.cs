@@ -10,14 +10,24 @@ namespace Flex.Domain.Entities
     public class OutboxMessage : EntityBase<long>
     {
         /// <summary>
-        /// Event type name for routing.
+        /// Event type full name for deserialization if needed.
         /// </summary>
         public string EventType { get; set; } = string.Empty;
 
         /// <summary>
-        /// Serialized event payload (JSON).
+        /// Serialized event payload.
         /// </summary>
         public string Payload { get; set; } = string.Empty;
+
+        /// <summary>
+        /// RabbitMQ exchange name. Resolved when writing to outbox.
+        /// </summary>
+        public string Exchange { get; set; } = string.Empty;
+
+        /// <summary>
+        /// RabbitMQ routing key. Resolved when writing to outbox.
+        /// </summary>
+        public string RoutingKey { get; set; } = string.Empty;
 
         /// <summary>
         /// When the event occurred (UTC).
@@ -25,7 +35,7 @@ namespace Flex.Domain.Entities
         public DateTime OccurredOn { get; set; }
 
         /// <summary>
-        /// Processing status: P (Pending), PR (Processing), PD (Processed), F (Failed), PF (PermanentlyFailed).
+        /// Processing status: P (Pending), PR (Processing), C (Success), F (Failed), PF (PermanentlyFailed).
         /// </summary>
         public string Status { get; set; } = OutboxMessageStatus.Pending;
 

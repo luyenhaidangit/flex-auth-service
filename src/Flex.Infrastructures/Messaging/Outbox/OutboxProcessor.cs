@@ -1,13 +1,10 @@
-﻿using Flex.Domain.Abstractions;
-using Flex.Domain.Constants;
+﻿using Flex.Domain.Constants;
 using Flex.Domain.Entities;
-using Flex.Infrastructures.Json;
 using Flex.Infrastructures.Messaging.RabbitMQ;
 using Flex.Infrastructures.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Text;
-using System.Text.Json;
 
 namespace Flex.Infrastructures.Messaging.Outbox
 {
@@ -18,7 +15,6 @@ namespace Flex.Infrastructures.Messaging.Outbox
     {
         private readonly IdentityDbContext _dbContext;
         private readonly IRabbitMQPublisher _publisher;
-        private readonly IEventRoutingResolver _routingResolver;
         private readonly ILogger<OutboxProcessor> _logger;
 
         private const int MaxRetryCount = 5;
@@ -27,12 +23,10 @@ namespace Flex.Infrastructures.Messaging.Outbox
         public OutboxProcessor(
             IdentityDbContext dbContext,
             IRabbitMQPublisher publisher,
-            IEventRoutingResolver routingResolver,
             ILogger<OutboxProcessor> logger)
         {
             _dbContext = dbContext;
             _publisher = publisher;
-            _routingResolver = routingResolver;
             _logger = logger;
         }
 
@@ -53,22 +47,14 @@ namespace Flex.Infrastructures.Messaging.Outbox
                 {
                     await this.MarkAsProcessingAsync(msg, cancellationToken);
 
-                    var integrationEvent = await this.DeserializeEventAsync(msg, cancellationToken);
-                    
-                    // Resolve routing from event type.
-                    var routing = _routingResolver.Resolve(integrationEvent.GetType());
-                    
-                    // Serialize event to JSON and convert to byte[]
-                    var jsonPayload = JsonSerializer.Serialize(integrationEvent, integrationEvent.GetType(), JsonOptions.Default);
-                    var body = Encoding.UTF8.GetBytes(jsonPayload);
-                    
-                    // Publish to RabbitMQ.
-                    await _publisher.PublishAsync(routing.Exchange, routing.RoutingKey, body, null, cancellationToken);
+                    // Publish to RabbitMQ using routing info stored in outbox
+                    var body = Encoding.UTF8.GetBytes(msg.Payload);
+                    await _publisher.PublishAsync(msg.Exchange, msg.RoutingKey, body, null, cancellationToken);
 
                     await this.MarkAsSentAsync(msg, cancellationToken);
 
                     _logger.LogInformation("Successfully published outbox message {MessageId} of type {EventType} to exchange {Exchange} with routing key {RoutingKey}",
-                        msg.Id, msg.EventType, routing.Exchange, routing.RoutingKey);
+                        msg.Id, msg.EventType, msg.Exchange, msg.RoutingKey);
                 }
                 catch (Exception ex)
                 {
@@ -119,50 +105,6 @@ namespace Flex.Infrastructures.Messaging.Outbox
             }
 
             await _dbContext.SaveChangesAsync(cancellationToken);
-        }
-
-        private async Task<IDomainEvent> DeserializeEventAsync(OutboxMessage message, CancellationToken cancellationToken)
-        {
-            await Task.CompletedTask; // For async signature consistency
-
-            var assembly = typeof(IDomainEvent).Assembly;
-            
-            // Try to find event type in common namespaces
-            var possibleNamespaces = new[]
-            {
-                "Flex.Domain.Events.Users",
-                "Flex.Domain.Events"
-            };
-
-            Type? eventType = null;
-            foreach (var ns in possibleNamespaces)
-            {
-                eventType = assembly.GetType($"{ns}.{message.EventType}");
-                if (eventType != null)
-                    break;
-            }
-
-            // If not found in namespaces, try to find by name only (searches all types in assembly)
-            if (eventType == null)
-            {
-                eventType = assembly.GetTypes()
-                    .FirstOrDefault(t => t.Name == message.EventType && typeof(IDomainEvent).IsAssignableFrom(t));
-            }
-
-            if (eventType == null)
-            {
-                throw new InvalidOperationException(
-                    $"Event type {message.EventType} not found in assembly {assembly.FullName}");
-            }
-
-            var integrationEvent = JsonSerializer.Deserialize(message.Payload, eventType, JsonOptions.Default);
-            if (integrationEvent is not IDomainEvent evt)
-            {
-                throw new InvalidOperationException(
-                    $"Deserialized object is not an IDomainEvent. Type: {integrationEvent?.GetType().Name ?? "null"}");
-            }
-
-            return evt;
         }
     }
 }
