@@ -17,18 +17,31 @@ namespace Flex.Infrastructures.Messaging.Outbox
             _options = options.Value;
         }
 
-        public (string Exchange, string RoutingKey) Resolve(Type eventType)
+        public EventRouting Resolve(Type eventType)
         {
             var defaultExchange = _options.ExchangeName;
 
-            return eventType.Name switch
+            if (eventType == typeof(UserLoggedInSuccessEvent))
             {
-                nameof(UserLoggedInSuccessEvent) => (defaultExchange, "user.login.success"),
-                nameof(UserLoggedInFailedEvent) => (defaultExchange, "user.login.failed"),
-                _ => throw new InvalidOperationException(
-                    $"No routing configuration found for event type: {eventType.Name}. " +
-                    $"Please configure routing in {nameof(IEventRoutingResolver)} implementation or register a custom resolver.")
-            };
+                return new EventRouting
+                {
+                    Exchange = defaultExchange,
+                    RoutingKey = "user.login.success"
+                };
+            }
+
+            if (eventType == typeof(UserLoggedInFailedEvent))
+            {
+                return new EventRouting
+                {
+                    Exchange = defaultExchange,
+                    RoutingKey = "user.login.failed"
+                };
+            }
+
+            throw new InvalidOperationException(
+                $"No routing defined for {eventType.Name}. " +
+                $"Please configure routing in {nameof(IEventRoutingResolver)} implementation or register a custom resolver.");
         }
     }
 }

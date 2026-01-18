@@ -55,14 +55,14 @@ namespace Flex.Infrastructures.Messaging.Outbox
 
                     var integrationEvent = await this.DeserializeEventAsync(msg, cancellationToken);
                     
-                    // Resolve routing from event type (Application layer decides)
-                    var (exchange, routingKey) = _routingResolver.Resolve(integrationEvent.GetType());
+                    // Resolve routing from event type.
+                    var routing = _routingResolver.Resolve(integrationEvent.GetType());
                     
                     // Serialize event to JSON and convert to byte[]
                     var jsonPayload = JsonSerializer.Serialize(integrationEvent, integrationEvent.GetType(), JsonOptions.Default);
                     var body = Encoding.UTF8.GetBytes(jsonPayload);
                     
-                    // Prepare headers (optional metadata)
+                    // Prepare headers.
                     var headers = new Dictionary<string, object>
                     {
                         { "EventType", integrationEvent.GetType().Name },
@@ -70,12 +70,12 @@ namespace Flex.Infrastructures.Messaging.Outbox
                     };
                     
                     // Publish to RabbitMQ
-                    await _publisher.PublishAsync(exchange, routingKey, body, headers, cancellationToken);
+                    await _publisher.PublishAsync(routing.Exchange, routing.RoutingKey, body, headers, cancellationToken);
 
                     await this.MarkAsSentAsync(msg, cancellationToken);
 
                     _logger.LogInformation("Successfully published outbox message {MessageId} of type {EventType} to exchange {Exchange} with routing key {RoutingKey}",
-                        msg.Id, msg.EventType, exchange, routingKey);
+                        msg.Id, msg.EventType, routing.Exchange, routing.RoutingKey);
                 }
                 catch (Exception ex)
                 {
