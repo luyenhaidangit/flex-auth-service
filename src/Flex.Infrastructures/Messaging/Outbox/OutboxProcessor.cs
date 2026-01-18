@@ -1,11 +1,12 @@
 ﻿using Flex.Domain.Abstractions;
 using Flex.Domain.Constants;
 using Flex.Domain.Entities;
-using Flex.Infrastructures.Events;
 using Flex.Infrastructures.Json;
+using Flex.Infrastructures.Messaging.RabbitMQ;
 using Flex.Infrastructures.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Text;
 using System.Text.Json;
 
 namespace Flex.Infrastructures.Messaging.Outbox
@@ -17,6 +18,7 @@ namespace Flex.Infrastructures.Messaging.Outbox
     {
         private readonly IdentityDbContext _dbContext;
         private readonly IRabbitMQPublisher _publisher;
+        private readonly IEventRoutingResolver _routingResolver;
         private readonly ILogger<OutboxProcessor> _logger;
 
         private const int MaxRetryCount = 5;
@@ -25,10 +27,12 @@ namespace Flex.Infrastructures.Messaging.Outbox
         public OutboxProcessor(
             IdentityDbContext dbContext,
             IRabbitMQPublisher publisher,
+            IEventRoutingResolver routingResolver,
             ILogger<OutboxProcessor> logger)
         {
             _dbContext = dbContext;
             _publisher = publisher;
+            _routingResolver = routingResolver;
             _logger = logger;
         }
 
@@ -49,13 +53,29 @@ namespace Flex.Infrastructures.Messaging.Outbox
                 {
                     await this.MarkAsProcessingAsync(msg, cancellationToken);
 
-                    var integrationEvent = await DeserializeEventAsync(msg, cancellationToken);
-                    await _publisher.PublishAsync(integrationEvent, cancellationToken);
+                    var integrationEvent = await this.DeserializeEventAsync(msg, cancellationToken);
+                    
+                    // Resolve routing from event type (Application layer decides)
+                    var (exchange, routingKey) = _routingResolver.Resolve(integrationEvent.GetType());
+                    
+                    // Serialize event to JSON and convert to byte[]
+                    var jsonPayload = JsonSerializer.Serialize(integrationEvent, integrationEvent.GetType(), JsonOptions.Default);
+                    var body = Encoding.UTF8.GetBytes(jsonPayload);
+                    
+                    // Prepare headers (optional metadata)
+                    var headers = new Dictionary<string, object>
+                    {
+                        { "EventType", integrationEvent.GetType().Name },
+                        { "OccurredOn", msg.OccurredOn.ToString("O") }
+                    };
+                    
+                    // Publish to RabbitMQ
+                    await _publisher.PublishAsync(exchange, routingKey, body, headers, cancellationToken);
 
                     await this.MarkAsSentAsync(msg, cancellationToken);
 
-                    _logger.LogInformation("Successfully published outbox message {MessageId} of type {EventType}",
-                        msg.Id, msg.EventType);
+                    _logger.LogInformation("Successfully published outbox message {MessageId} of type {EventType} to exchange {Exchange} with routing key {RoutingKey}",
+                        msg.Id, msg.EventType, exchange, routingKey);
                 }
                 catch (Exception ex)
                 {

@@ -11,5 +11,6 @@
         public int RequestedHeartbeat { get; init; } = 30;
         public int NetworkRecoveryIntervalSeconds { get; init; } = 10;
         public bool UseSsl { get; init; }
+        public string ExchangeName { get; init; } = "flex.events";
     }
 }
