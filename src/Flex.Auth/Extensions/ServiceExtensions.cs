@@ -6,8 +6,8 @@ using Flex.Identity.Services.Interfaces;
 using Flex.Infrastructures.Authentication;
 using Flex.Infrastructures.EntityFrameworkCore;
 using Flex.Infrastructures.Events;
-using Flex.Infrastructures.Messaging.Outbox;
 using Flex.Infrastructures.Http;
+using Flex.Infrastructures.Messaging.Outbox;
 using Flex.Infrastructures.Observability;
 using Flex.Infrastructures.OpenApi;
 using Flex.Infrastructures.Persistence;
@@ -53,8 +53,9 @@ namespace Flex.Identity.Extensions
             // Database
             services.ConfigureServiceDbContext<IdentityDbContext>(configuration, useWallet: true);
 
-            // RabbitMQ
-            // services.AddRabbitMQ(configuration);
+            // Message queue
+            services.AddRabbitMQ(configuration);
+            services.AddOutbox();
 
             // Background Services
             // services.AddHostedService<OutboxProcessorBackgroundService>();
@@ -88,10 +89,6 @@ namespace Flex.Identity.Extensions
 
             // Password Hasher
             services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();
-
-            // Integration Events - Outbox
-            services.AddScoped<IOutboxWriter, OutboxWriter>();
-            // services.AddScoped<IOutboxProcessor, OutboxProcessor>();
 
             return services;
         }
