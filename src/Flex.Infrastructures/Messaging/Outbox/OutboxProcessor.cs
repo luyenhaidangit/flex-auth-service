@@ -62,15 +62,8 @@ namespace Flex.Infrastructures.Messaging.Outbox
                     var jsonPayload = JsonSerializer.Serialize(integrationEvent, integrationEvent.GetType(), JsonOptions.Default);
                     var body = Encoding.UTF8.GetBytes(jsonPayload);
                     
-                    // Prepare headers.
-                    var headers = new Dictionary<string, object>
-                    {
-                        { "EventType", integrationEvent.GetType().Name },
-                        { "OccurredOn", msg.OccurredOn.ToString("O") }
-                    };
-                    
-                    // Publish to RabbitMQ
-                    await _publisher.PublishAsync(routing.Exchange, routing.RoutingKey, body, headers, cancellationToken);
+                    // Publish to RabbitMQ (all metadata is in the payload)
+                    await _publisher.PublishAsync(routing.Exchange, routing.RoutingKey, body, null, cancellationToken);
 
                     await this.MarkAsSentAsync(msg, cancellationToken);
 
