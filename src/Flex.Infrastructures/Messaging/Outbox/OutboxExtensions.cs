@@ -1,6 +1,4 @@
-using Flex.Infrastructures.Messaging.RabbitMQ;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 
 namespace Flex.Infrastructures.Messaging.Outbox
 {
