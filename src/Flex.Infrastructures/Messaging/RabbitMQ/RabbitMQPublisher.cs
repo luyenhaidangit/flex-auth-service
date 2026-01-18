@@ -21,7 +21,7 @@ namespace Flex.Infrastructures.Messaging.RabbitMQ
                 RequestedHeartbeat = TimeSpan.FromSeconds(cfg.RequestedHeartbeat),
                 AutomaticRecoveryEnabled = true,
                 NetworkRecoveryInterval = TimeSpan.FromSeconds(
-                    cfg.NetworkRecoveryIntervalSeconds)
+                    cfg.NetworkRecoveryIntervalSeconds),
                 ClientProvidedName = cfg.ClientProvidedName
             };
 
