@@ -17,9 +17,9 @@ namespace Flex.Domain.Constants
         public const string Processing = "PR";
 
         /// <summary>
-        /// Message has been successfully processed and published (PD).
+        /// Message has been successfully processed and published.
         /// </summary>
-        public const string Processed = "PD";
+        public const string Success = "C";
 
         /// <summary>
         /// Message processing failed but can be retried (F).
