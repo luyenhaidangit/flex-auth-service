@@ -11,38 +11,40 @@ namespace Flex.Identity.Events
     /// </summary>
     public sealed class EventRoutingResolver : IEventRoutingResolver
     {
-        private readonly RabbitMQOptions _options;
+        private readonly string _defaultExchange;
+        public static class RoutingKeys
+        {
+            public const string UserLoginSuccess = "user.login.success";
+            public const string UserLoginFailed = "user.login.failed";
+        }
+
 
         public EventRoutingResolver(IOptions<RabbitMQOptions> options)
         {
-            _options = options.Value;
+            _defaultExchange = options.Value.ExchangeName;
         }
 
         public EventRouting Resolve(Type eventType)
         {
-            var defaultExchange = _options.ExchangeName;
+            var routingKey = this.GetRoutingKey(eventType);
 
-            if (eventType == typeof(UserLoggedInSuccessEvent))
+            return new EventRouting
             {
-                return new EventRouting
-                {
-                    Exchange = defaultExchange,
-                    RoutingKey = "user.login.success"
-                };
-            }
+                Exchange = _defaultExchange,
+                RoutingKey = routingKey
+            };
+        }
 
-            if (eventType == typeof(UserLoggedInFailedEvent))
+        private string GetRoutingKey(Type eventType)
+        {
+            return eventType switch
             {
-                return new EventRouting
-                {
-                    Exchange = defaultExchange,
-                    RoutingKey = "user.login.failed"
-                };
-            }
-
-            throw new InvalidOperationException(
-                $"No routing defined for {eventType.Name}. " +
-                $"Please configure routing in {nameof(IEventRoutingResolver)} implementation.");
+                _ when eventType == typeof(UserLoggedInSuccessEvent) => RoutingKeys.UserLoginSuccess,
+                _ when eventType == typeof(UserLoggedInFailedEvent) => RoutingKeys.UserLoginFailed,
+                _ => throw new InvalidOperationException(
+                    $"No routing defined for event type: {eventType.Name}. " +
+                    $"Please add routing configuration in {nameof(EventRoutingResolver)}.")
+            };
         }
     }
 }
