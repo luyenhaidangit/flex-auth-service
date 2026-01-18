@@ -18,7 +18,6 @@ namespace Flex.Identity.Events
             public const string UserLoginFailed = "user.login.failed";
         }
 
-
         public EventRoutingResolver(IOptions<RabbitMQOptions> options)
         {
             _defaultExchange = options.Value.ExchangeName;
