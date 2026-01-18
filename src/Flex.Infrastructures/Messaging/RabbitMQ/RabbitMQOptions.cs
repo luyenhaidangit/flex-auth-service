@@ -2,6 +2,7 @@
 {
     public sealed class RabbitMQOptions
     {
+        public string ClientProvidedName { get; init; } = default!;
         public string HostName { get; init; } = default!;
         public int Port { get; init; } = 5672;
         public string UserName { get; init; } = default!;

@@ -22,6 +22,7 @@ namespace Flex.Infrastructures.Messaging.RabbitMQ
                 AutomaticRecoveryEnabled = true,
                 NetworkRecoveryInterval = TimeSpan.FromSeconds(
                     cfg.NetworkRecoveryIntervalSeconds)
+                ClientProvidedName = cfg.ClientProvidedName
             };
 
             _connection = factory.CreateConnection();
