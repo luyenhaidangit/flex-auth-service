@@ -33,7 +33,7 @@ namespace Flex.Infrastructures.Messaging.Outbox
 
             var outboxMessage = new OutboxMessage
             {
-                EventType = integrationEvent.GetType().FullName ?? integrationEvent.GetType().Name,
+                EventType = integrationEvent.GetType().Name,
                 Payload = payload,
                 Exchange = routing.Exchange,
                 RoutingKey = routing.RoutingKey,
