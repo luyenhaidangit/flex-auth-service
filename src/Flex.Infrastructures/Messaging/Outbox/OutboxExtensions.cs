@@ -21,6 +21,7 @@ namespace Flex.Infrastructures.Messaging.Outbox
             // Register outbox services
             services.AddScoped<IOutboxWriter, OutboxWriter>();
             services.AddScoped<IOutboxProcessor, OutboxProcessor>();
+            services.AddHostedService<OutboxProcessorBackgroundService>();
 
             return services;
         }

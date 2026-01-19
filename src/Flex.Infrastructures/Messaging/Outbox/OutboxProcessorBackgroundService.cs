@@ -3,7 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace Flex.Infrastructures.Events
+namespace Flex.Infrastructures.Messaging.Outbox
 {
     /// <summary>
     /// Background service that periodically processes outbox messages and publishes them to RabbitMQ.
