@@ -38,7 +38,7 @@ namespace Flex.Infrastructures.Messaging.Outbox
                 data: integrationEvent,
                 source: _options.ClientProvidedName, 
                 type: integrationEvent.GetType().Name, 
-                version: "1.0");
+                version: 1);
 
             var payload = JsonSerializer.Serialize(envelope, envelope.GetType(), JsonOptions.Default);
 

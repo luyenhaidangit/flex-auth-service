@@ -27,12 +27,12 @@ namespace Flex.Infrastructures.Messaging.Outbox
         /// Version of the event schema.
         /// Allows for schema evolution (e.g., "1.0", "2.0").
         /// </summary>
-        public string Version { get; set; } = string.Empty;
+        public int Version { get; set; } = 0;
 
         /// <summary>
         /// When the event occurred.
         /// </summary>
-        public DateTimeOffset Timestamp { get; set; }
+        public DateTimeOffset OccurredOn { get; set; }
 
         /// <summary>
         /// The actual domain event payload.
@@ -40,14 +40,9 @@ namespace Flex.Infrastructures.Messaging.Outbox
         public object? Data { get; set; }
 
         /// <summary>
-        /// Optional metadata (e.g., TraceId, CorrelationId, TenantId).
-        /// </summary>
-        public Dictionary<string, object> Metadata { get; set; } = new();
-
-        /// <summary>
         /// Creates a new EventEnvelope with the standard structure.
         /// </summary>
-        public static EventEnvelope Create(object data, string source, string type, string version = "1.0")
+        public static EventEnvelope Create(object data, string source, string type, int version = 1)
         {
             return new EventEnvelope
             {
@@ -56,7 +51,7 @@ namespace Flex.Infrastructures.Messaging.Outbox
                 Type = type,
                 Version = version,
                 Id = Guid.NewGuid(),
-                Timestamp = DateTimeOffset.UtcNow
+                OccurredOn = DateTimeOffset.UtcNow
             };
         }
     }
