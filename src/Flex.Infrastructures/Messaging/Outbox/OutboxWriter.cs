@@ -3,6 +3,8 @@ using Flex.Domain.Constants;
 using Flex.Domain.Entities;
 using Flex.Infrastructures.Json;
 using Flex.Infrastructures.Persistence;
+using Flex.Infrastructures.Messaging.RabbitMQ;
+using Microsoft.Extensions.Options;
 using System.Text.Json;
 
 namespace Flex.Infrastructures.Messaging.Outbox
@@ -14,13 +16,16 @@ namespace Flex.Infrastructures.Messaging.Outbox
     {
         private readonly IdentityDbContext _dbContext;
         private readonly IEventRoutingResolver _routingResolver;
+        private readonly RabbitMQOptions _options;
 
         public OutboxWriter(
             IdentityDbContext dbContext,
-            IEventRoutingResolver routingResolver)
+            IEventRoutingResolver routingResolver,
+            IOptions<RabbitMQOptions> options)
         {
             _dbContext = dbContext;
             _routingResolver = routingResolver;
+            _options = options.Value;
         }
 
         public async Task AddAsync(IDomainEvent integrationEvent, CancellationToken cancellationToken = default)
@@ -29,12 +34,18 @@ namespace Flex.Infrastructures.Messaging.Outbox
             var routing = _routingResolver.Resolve(integrationEvent.GetType());
 
             // Serialize event to JSON
-            var payload = JsonSerializer.Serialize(integrationEvent, integrationEvent.GetType(), JsonOptions.Default);
+            var envelope = EventEnvelope.Create(
+                data: integrationEvent,
+                source: _options.ClientProvidedName, 
+                type: integrationEvent.GetType().Name, 
+                version: "1.0");
+
+            var payload = JsonSerializer.Serialize(envelope, envelope.GetType(), JsonOptions.Default);
 
             var outboxMessage = new OutboxMessage
             {
                 EventType = integrationEvent.GetType().Name,
-                Payload = payload,
+                Payload = payload, 
                 Exchange = routing.Exchange,
                 RoutingKey = routing.RoutingKey,
                 OccurredOn = DateTime.UtcNow,
