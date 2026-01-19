@@ -45,8 +45,6 @@ namespace Flex.Infrastructures.Messaging.Outbox
             {
                 try
                 {
-                    await this.MarkAsProcessingAsync(msg, cancellationToken);
-
                     // Publish to RabbitMQ using routing info stored in outbox
                     var body = Encoding.UTF8.GetBytes(msg.Payload);
                     await _publisher.PublishAsync(msg.Exchange, msg.RoutingKey, body, null, cancellationToken);
@@ -75,17 +73,11 @@ namespace Flex.Infrastructures.Messaging.Outbox
                 .ToListAsync(cancellationToken);
         }
 
-        private async Task MarkAsProcessingAsync(OutboxMessage message, CancellationToken cancellationToken)
-        {
-            message.Status = OutboxMessageStatus.Processing;
-            message.ProcessedOn = DateTime.UtcNow;
-            await _dbContext.SaveChangesAsync(cancellationToken);
-        }
-
         private async Task MarkAsSentAsync(OutboxMessage message, CancellationToken cancellationToken)
         {
-            message.Status = OutboxMessageStatus.Success;
+            message.Status = OutboxMessageStatus.Sent;
             message.ErrorMessage = null;
+            message.ProcessedOn = DateTime.UtcNow;
             await _dbContext.SaveChangesAsync(cancellationToken);
         }
 
@@ -97,10 +89,11 @@ namespace Flex.Infrastructures.Messaging.Outbox
 
             if (message.RetryCount >= MaxRetryCount)
             {
-                message.Status = OutboxMessageStatus.PermanentlyFailed;
+                message.Status = OutboxMessageStatus.Dead;
             }
             else
             {
+                // Reset to Pending for retry
                 message.Status = OutboxMessageStatus.Pending;
             }
 

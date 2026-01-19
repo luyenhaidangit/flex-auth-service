@@ -35,7 +35,7 @@ namespace Flex.Domain.Entities
         public DateTime OccurredOn { get; set; }
 
         /// <summary>
-        /// Processing status: P (Pending), PR (Processing), C (Success), F (Failed), PF (PermanentlyFailed).
+        /// Processing status: P (Pending), S (Sent), F (Failed), D (Dead).
         /// </summary>
         public string Status { get; set; } = OutboxMessageStatus.Pending;
 

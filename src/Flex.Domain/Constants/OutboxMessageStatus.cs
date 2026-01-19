@@ -12,14 +12,9 @@ namespace Flex.Domain.Constants
         public const string Pending = "P";
 
         /// <summary>
-        /// Message is currently being processed (PR).
+        /// Message has been successfully sent (S).
         /// </summary>
-        public const string Processing = "PR";
-
-        /// <summary>
-        /// Message has been successfully processed and published.
-        /// </summary>
-        public const string Success = "C";
+        public const string Sent = "S";
 
         /// <summary>
         /// Message processing failed but can be retried (F).
@@ -27,8 +22,8 @@ namespace Flex.Domain.Constants
         public const string Failed = "F";
 
         /// <summary>
-        /// Message processing permanently failed after max retries (PF).
+        /// Message processing dead after max retries exceeded (D).
         /// </summary>
-        public const string PermanentlyFailed = "PF";
+        public const string Dead = "D";
     }
 }
