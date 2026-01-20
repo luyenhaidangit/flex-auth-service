@@ -33,14 +33,15 @@ namespace Flex.Infrastructures.Messaging.Outbox
             // Resolve routing when writing to outbox.
             var routing = _routingResolver.Resolve(integrationEvent.GetType());
 
-            // Serialize event to JSON
+            // Create standardized event envelope with version
             var envelope = EventEnvelope.Create(
                 data: integrationEvent,
                 source: _options.ClientProvidedName, 
                 type: integrationEvent.GetType().Name, 
                 version: 1);
 
-            var payload = JsonSerializer.Serialize(envelope, envelope.GetType(), JsonOptions.Default);
+            // Serialize envelope to JSON
+            var payload = JsonSerializer.Serialize(envelope, typeof(EventEnvelope), JsonOptions.Default);
 
             var outboxMessage = new OutboxMessage
             {
