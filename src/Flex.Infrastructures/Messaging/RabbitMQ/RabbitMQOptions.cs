@@ -12,5 +12,6 @@
         public int NetworkRecoveryIntervalSeconds { get; init; } = 10;
         public bool UseSsl { get; init; }
         public string ExchangeName { get; init; } = "flex.events";
+        public int PublisherConfirmTimeoutSeconds { get; init; } = 5;
     }
 }

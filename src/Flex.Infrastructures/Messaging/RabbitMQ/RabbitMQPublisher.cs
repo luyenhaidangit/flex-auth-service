@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 
 namespace Flex.Infrastructures.Messaging.RabbitMQ
@@ -6,10 +7,16 @@ namespace Flex.Infrastructures.Messaging.RabbitMQ
     public class RabbitMQPublisher : IRabbitMQPublisher, IDisposable
     {
         private readonly IConnection _connection;
+        private readonly RabbitMQOptions _options;
+        private readonly ILogger<RabbitMQPublisher> _logger;
 
-        public RabbitMQPublisher(IOptions<RabbitMQOptions> options)
+        public RabbitMQPublisher(
+            IOptions<RabbitMQOptions> options,
+            ILogger<RabbitMQPublisher> logger)
         {
-            var cfg = options.Value;
+            _options = options.Value;
+            _logger = logger;
+            var cfg = _options;
 
             var factory = new ConnectionFactory
             {
@@ -28,9 +35,12 @@ namespace Flex.Infrastructures.Messaging.RabbitMQ
             _connection = factory.CreateConnection();
         }
 
-        public Task PublishAsync(string exchange,string routingKey,byte[] body,IDictionary<string, object>? headers = null,CancellationToken ct = default)
+        public Task PublishAsync(string exchange, string routingKey, byte[] body, IDictionary<string, object>? headers = null, CancellationToken ct = default)
         {
             using var channel = _connection.CreateModel();
+
+            // Enable publisher confirms for reliable delivery
+            channel.ConfirmSelect();
 
             var props = channel.CreateBasicProperties();
             props.Persistent = true;
@@ -42,6 +52,10 @@ namespace Flex.Infrastructures.Messaging.RabbitMQ
                 mandatory: false,
                 basicProperties: props,
                 body: body);
+
+            // Wait for broker confirmation (throws on nack or timeout)
+            var timeout = TimeSpan.FromSeconds(_options.PublisherConfirmTimeoutSeconds);
+            channel.WaitForConfirmsOrDie(timeout);
 
             return Task.CompletedTask;
         }
