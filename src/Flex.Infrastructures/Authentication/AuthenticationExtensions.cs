@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -42,6 +43,24 @@ namespace Flex.Infrastructures.Authentication
                         ValidIssuer = settings.Issuer,
                         ValidAudience = settings.Audience,
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(settings.SecretKey))
+                    };
+
+                    // Skip JWT validation for endpoints with [AllowAnonymous]
+                    jwtBearerOptions.Events = new JwtBearerEvents
+                    {
+                        OnMessageReceived = context =>
+                        {
+                            var endpoint = context.HttpContext.GetEndpoint();
+                            var allowAnonymous = endpoint?.Metadata.GetMetadata<IAllowAnonymous>() != null;
+
+                            if (allowAnonymous)
+                            {
+                                // Skip token validation for anonymous endpoints
+                                context.NoResult();
+                            }
+
+                            return Task.CompletedTask;
+                        }
                     };
                 });
 
