@@ -1,2 +1,2 @@
-# flex-apigateway
+# flex-auth-service
 
