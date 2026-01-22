@@ -1,0 +1,18 @@
+﻿namespace Flex.Infrastructures.Messaging.RabbitMQ
+{
+    public class RabbitMQConsumerOptions
+    {
+        public string ClientProvidedName { get; init; } = default!;
+        public string HostName { get; init; } = default!;
+        public int Port { get; init; } = 5672;
+        public string UserName { get; init; } = default!;
+        public string Password { get; init; } = default!;
+        public string VirtualHost { get; init; } = "/";
+        public int RequestedHeartbeat { get; init; } = 30;
+        public int NetworkRecoveryIntervalSeconds { get; init; } = 10;
+        public bool UseSsl { get; init; }
+        public string ExchangeName { get; init; } = "flex.events";
+        public int PublisherConfirmTimeoutSeconds { get; init; } = 5;
+        public int PrefetchCount { get; init; } = 16;
+    }
+}

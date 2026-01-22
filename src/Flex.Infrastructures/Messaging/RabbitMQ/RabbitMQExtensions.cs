@@ -25,6 +25,27 @@ namespace Flex.Infrastructures.Messaging.RabbitMQ
                 .ValidateOnStart();
 
             services.AddSingleton<IRabbitMQPublisher, RabbitMQPublisher>();
+            services.AddHostedService<RabbitMQStartupVerification>();
+
+            return services;
+        }
+
+        /// <summary>
+        /// Adds RabbitMQ publisher services to the service collection.
+        /// Required declare RabbitMQ in configuration.
+        /// Also validates that the configured exchange exists on startup.
+        /// </summary>
+        public static IServiceCollection AddRabbitMQConsumer(this IServiceCollection services, IConfiguration configuration)
+        {
+            services
+                .AddOptions<RabbitMQConsumerOptions>()
+                .Bind(configuration.GetSection("RabbitMQConsumer"))
+                .Validate(o => !string.IsNullOrWhiteSpace(o.HostName), "RabbitMQ HostName is required")
+                .Validate(o => !string.IsNullOrWhiteSpace(o.UserName), "RabbitMQ UserName is required")
+                .Validate(o => !string.IsNullOrWhiteSpace(o.Password), "RabbitMQ Password is required")
+                .Validate(o => !string.IsNullOrWhiteSpace(o.ExchangeName), "RabbitMQ ExchangeName is required")
+                .ValidateOnStart();
+
             services.AddSingleton<IRabbitMQConsumer, RabbitMQConsumer>();
             services.AddHostedService<RabbitMQStartupVerification>();
 

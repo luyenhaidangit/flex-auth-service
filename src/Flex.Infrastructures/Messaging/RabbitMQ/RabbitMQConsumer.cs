@@ -12,14 +12,14 @@ namespace Flex.Infrastructures.Messaging.RabbitMQ
     public class RabbitMQConsumer : IRabbitMQConsumer
     {
         private readonly IConnection _connection;
-        private readonly RabbitMQOptions _options;
+        private readonly RabbitMQConsumerOptions _options;
         private readonly ILogger<RabbitMQConsumer> _logger;
         private IModel? _channel;
         private string? _consumerTag;
         private bool _disposed;
 
         public RabbitMQConsumer(
-            IOptions<RabbitMQOptions> options,
+            IOptions<RabbitMQConsumerOptions> options,
             ILogger<RabbitMQConsumer> logger)
         {
             _options = options.Value;
