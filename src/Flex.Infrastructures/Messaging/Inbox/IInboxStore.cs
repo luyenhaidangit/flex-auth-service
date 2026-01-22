@@ -20,14 +20,4 @@ namespace Flex.Infrastructures.Messaging.Inbox
         /// </summary>
         Task MarkFailedAsync(InboxEntry entry, string errorMessage, CancellationToken cancellationToken = default);
     }
-
-    public record InboxEntry
-    {
-        public Guid MessageId { get; init; }
-        public string Source { get; init; } = string.Empty;
-        public string EventType { get; init; } = string.Empty;
-        public string HandlerName { get; init; } = string.Empty;
-        public string? BusinessKey { get; init; }
-        public string Payload { get; init; } = string.Empty;
-    }
 }
