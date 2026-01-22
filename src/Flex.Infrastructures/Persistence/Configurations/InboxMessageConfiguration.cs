@@ -19,10 +19,10 @@ namespace Flex.Infrastructures.Persistence.Configurations
                 .HasColumnName("MESSAGE_ID")
                 .IsRequired();
 
-            // Unique constraint on MessageId for fast deduplication
-            builder.HasIndex(x => x.MessageId)
+            // Unique constraint on (MessageId, HandlerName) for deduplication per handler
+            builder.HasIndex(x => new { x.MessageId, x.HandlerName })
                 .IsUnique()
-                .HasDatabaseName("UQ_INBOX_MESSAGES_MESSAGE_ID");
+                .HasDatabaseName("UQ_INBOX_DEDUP");
 
             builder.Property(x => x.Source)
                 .HasColumnName("SOURCE")
@@ -59,6 +59,10 @@ namespace Flex.Infrastructures.Persistence.Configurations
             builder.Property(x => x.Status)
                 .HasColumnName("STATUS")
                 .HasMaxLength(10)
+                .IsRequired();
+
+            builder.Property(x => x.RetryCount)
+                .HasColumnName("RETRY_COUNT")
                 .IsRequired();
 
             builder.Property(x => x.ErrorMessage)

@@ -54,6 +54,11 @@ namespace Flex.Domain.Entities
         public string Status { get; set; } = string.Empty;
 
         /// <summary>
+        /// Number of processing attempts
+        /// </summary>
+        public int RetryCount { get; set; }
+
+        /// <summary>
         /// Error message if processing failed
         /// </summary>
         public string? ErrorMessage { get; set; }

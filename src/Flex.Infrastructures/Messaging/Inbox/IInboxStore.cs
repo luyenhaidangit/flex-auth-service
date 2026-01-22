@@ -1,23 +1,45 @@
 namespace Flex.Infrastructures.Messaging.Inbox
 {
     /// <summary>
-    /// Interface for inbox message deduplication store.
+    /// Infrastructure service for inbox pattern deduplication.
+    /// Uses UNIQUE constraint for atomic dedup - no race conditions.
     /// </summary>
     public interface IInboxStore
     {
         /// <summary>
-        /// Checks if a message has already been processed.
+        /// Atomically try to begin processing a message.
+        /// Returns true if this is first time seeing this message.
+        /// Returns false if duplicate (already processed/processing).
+        /// Uses UNIQUE constraint on (MessageId, HandlerName) - no race condition.
         /// </summary>
-        Task<bool> ExistsAsync(Guid messageId, CancellationToken cancellationToken = default);
+        /// <param name="messageId">Unique message identifier from EventEnvelope</param>
+        /// <param name="handlerName">Name of the handler processing this message</param>
+        /// <param name="payload">Serialized message payload for audit</param>
+        /// <param name="cancellationToken">Cancellation token</param>
+        /// <returns>True if first time (proceed with processing), False if duplicate (skip)</returns>
+        Task<bool> TryBeginProcessingAsync(
+            Guid messageId,
+            string handlerName,
+            string payload,
+            CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Marks a message as processed in the inbox.
+        /// Mark message as successfully processed.
+        /// Should be called within same transaction as business logic.
         /// </summary>
-        Task MarkProcessedAsync(InboxEntry entry, CancellationToken cancellationToken = default);
+        Task MarkProcessedAsync(
+            Guid messageId,
+            string handlerName,
+            CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Marks a message as failed in the inbox.
+        /// Mark message as failed with error details.
+        /// Should be called within same transaction as business logic.
         /// </summary>
-        Task MarkFailedAsync(InboxEntry entry, string errorMessage, CancellationToken cancellationToken = default);
+        Task MarkFailedAsync(
+            Guid messageId,
+            string handlerName,
+            string errorMessage,
+            CancellationToken cancellationToken = default);
     }
 }

@@ -3,11 +3,13 @@ using Flex.Domain.Entities;
 using Flex.Infrastructures.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Oracle.ManagedDataAccess.Client;
 
 namespace Flex.Infrastructures.Messaging.Inbox
 {
     /// <summary>
-    /// Implementation of IInboxStore that manages message deduplication using database.
+    /// Implementation of IInboxStore using UNIQUE constraint for atomic deduplication.
+    /// No race conditions - database guarantees atomicity.
     /// </summary>
     internal sealed class InboxStore : IInboxStore
     {
@@ -20,55 +22,94 @@ namespace Flex.Infrastructures.Messaging.Inbox
             _logger = logger;
         }
 
-        public async Task<bool> ExistsAsync(Guid messageId, CancellationToken cancellationToken = default)
-        {
-            return await _dbContext.InboxMessages
-                .AnyAsync(x => x.MessageId == messageId, cancellationToken);
-        }
-
-        public async Task MarkProcessedAsync(InboxEntry entry, CancellationToken cancellationToken = default)
+        public async Task<bool> TryBeginProcessingAsync(
+            Guid messageId,
+            string handlerName,
+            string payload,
+            CancellationToken cancellationToken = default)
         {
             var inboxMessage = new InboxMessage
             {
-                MessageId = entry.MessageId,
-                Source = entry.Source,
-                EventType = entry.EventType,
-                HandlerName = entry.HandlerName,
-                BusinessKey = entry.BusinessKey,
-                Payload = entry.Payload,
+                MessageId = messageId,
+                Source = string.Empty, // Will be set later if needed
+                EventType = string.Empty, // Will be set later if needed
+                HandlerName = handlerName,
+                Payload = payload,
                 FirstSeenAt = DateTime.UtcNow,
                 ProcessedAt = DateTime.UtcNow,
-                Status = InboxMessageStatus.Processed
+                Status = InboxMessageStatus.Processed, // Optimistic - will update if fails
+                RetryCount = 0
             };
 
-            await _dbContext.InboxMessages.AddAsync(inboxMessage, cancellationToken);
-            await _dbContext.SaveChangesAsync(cancellationToken);
+            try
+            {
+                await _dbContext.InboxMessages.AddAsync(inboxMessage, cancellationToken);
+                await _dbContext.SaveChangesAsync(cancellationToken);
 
-            _logger.LogInformation("Marked message {MessageId} as processed by {HandlerName}",
-                entry.MessageId, entry.HandlerName);
+                _logger.LogDebug("First time seeing message {MessageId} for {Handler}",
+                    messageId, handlerName);
+
+                return true; // First time - proceed with processing
+            }
+            catch (DbUpdateException ex) when (IsUniqueConstraintViolation(ex))
+            {
+                // Duplicate detected by UNIQUE constraint
+                _logger.LogDebug("Duplicate message {MessageId} for {Handler} detected by UNIQUE constraint",
+                    messageId, handlerName);
+
+                return false; // Duplicate - skip processing
+            }
         }
 
-        public async Task MarkFailedAsync(InboxEntry entry, string errorMessage, CancellationToken cancellationToken = default)
+        public async Task MarkProcessedAsync(
+            Guid messageId,
+            string handlerName,
+            CancellationToken cancellationToken = default)
         {
-            var inboxMessage = new InboxMessage
+            var message = await _dbContext.InboxMessages
+                .FirstOrDefaultAsync(x => x.MessageId == messageId && x.HandlerName == handlerName, cancellationToken);
+
+            if (message != null)
             {
-                MessageId = entry.MessageId,
-                Source = entry.Source,
-                EventType = entry.EventType,
-                HandlerName = entry.HandlerName,
-                BusinessKey = entry.BusinessKey,
-                Payload = entry.Payload,
-                FirstSeenAt = DateTime.UtcNow,
-                ProcessedAt = DateTime.UtcNow,
-                Status = InboxMessageStatus.Failed,
-                ErrorMessage = errorMessage.Length > 2000 ? errorMessage[..2000] : errorMessage
-            };
+                message.Status = InboxMessageStatus.Processed;
+                message.ProcessedAt = DateTime.UtcNow;
+                message.ErrorMessage = null;
 
-            await _dbContext.InboxMessages.AddAsync(inboxMessage, cancellationToken);
-            await _dbContext.SaveChangesAsync(cancellationToken);
+                await _dbContext.SaveChangesAsync(cancellationToken);
 
-            _logger.LogWarning("Marked message {MessageId} as failed: {Error}",
-                entry.MessageId, errorMessage);
+                _logger.LogInformation("Marked message {MessageId} as processed by {HandlerName}",
+                    messageId, handlerName);
+            }
+        }
+
+        public async Task MarkFailedAsync(
+            Guid messageId,
+            string handlerName,
+            string errorMessage,
+            CancellationToken cancellationToken = default)
+        {
+            var message = await _dbContext.InboxMessages
+                .FirstOrDefaultAsync(x => x.MessageId == messageId && x.HandlerName == handlerName, cancellationToken);
+
+            if (message != null)
+            {
+                message.Status = InboxMessageStatus.Failed;
+                message.ProcessedAt = DateTime.UtcNow;
+                message.ErrorMessage = errorMessage.Length > 2000 ? errorMessage[..2000] : errorMessage;
+                message.RetryCount++;
+
+                await _dbContext.SaveChangesAsync(cancellationToken);
+
+                _logger.LogWarning("Marked message {MessageId} as failed (retry {RetryCount}): {Error}",
+                    messageId, message.RetryCount, errorMessage);
+            }
+        }
+
+        private static bool IsUniqueConstraintViolation(DbUpdateException ex)
+        {
+            // Oracle unique constraint violation: ORA-00001
+            return ex.InnerException is OracleException oracleEx
+                && oracleEx.Number == 1; // ORA-00001: unique constraint violated
         }
     }
 }
