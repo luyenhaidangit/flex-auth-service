@@ -58,6 +58,9 @@ namespace Flex.Identity.Extensions
             // Message queue
             services.AddRabbitMQ(configuration);
             services.AddOutbox<EventRoutingResolver>();
+
+            // Message consumer
+            services.AddRabbitMQConsumer(configuration);
             services.AddInbox();
 
             // Background Services
