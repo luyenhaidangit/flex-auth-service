@@ -30,7 +30,6 @@ namespace Flex.Infrastructures.Persistence
         public DbSet<Permission> Permissions { get; set; }
         public DbSet<LoginHistory> LoginHistories { get; set; }
         public DbSet<OutboxMessage> OutboxMessages { get; set; }
-        public DbSet<InboxMessage> InboxMessages { get; set; }
         #endregion
     }
 }

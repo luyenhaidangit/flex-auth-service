@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 
 namespace Flex.Infrastructures.Messaging.RabbitMQ
 {
@@ -27,18 +26,7 @@ namespace Flex.Infrastructures.Messaging.RabbitMQ
 
             services.AddSingleton<IRabbitMQPublisher, RabbitMQPublisher>();
             services.AddHostedService<RabbitMQStartupVerification>();
-            services.AddHostedService<Consumers.LoginAuditConsumer>();
 
-            return services;
-        }
-
-        /// <summary>
-        /// Registers a RabbitMQ consumer as a hosted service.
-        /// </summary>
-        public static IServiceCollection AddConsumer<TConsumer>(this IServiceCollection services)
-            where TConsumer : class, IHostedService
-        {
-            services.AddHostedService<TConsumer>();
             return services;
         }
     }
