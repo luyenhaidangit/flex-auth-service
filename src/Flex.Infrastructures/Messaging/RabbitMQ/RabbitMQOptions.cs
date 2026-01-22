@@ -13,5 +13,6 @@
         public bool UseSsl { get; init; }
         public string ExchangeName { get; init; } = "flex.events";
         public int PublisherConfirmTimeoutSeconds { get; init; } = 5;
+        public int PrefetchCount { get; init; } = 16;
     }
 }

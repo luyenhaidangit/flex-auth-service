@@ -7,6 +7,7 @@ using Flex.Identity.Services.Interfaces;
 using Flex.Infrastructures.Authentication;
 using Flex.Infrastructures.EntityFrameworkCore;
 using Flex.Infrastructures.Http;
+using Flex.Infrastructures.Messaging.Inbox;
 using Flex.Infrastructures.Messaging.Outbox;
 using Flex.Infrastructures.Messaging.RabbitMQ;
 using Flex.Infrastructures.Observability;
@@ -57,9 +58,11 @@ namespace Flex.Identity.Extensions
             // Message queue
             services.AddRabbitMQ(configuration);
             services.AddOutbox<EventRoutingResolver>();
+            services.AddInbox();
 
             // Background Services
             // services.AddHostedService<OutboxProcessorBackgroundService>();
+            services.AddHostedService<Flex.Auth.Consumers.UserLoginEventConsumer>();
 
             // CORS
             services.AddCors(options =>

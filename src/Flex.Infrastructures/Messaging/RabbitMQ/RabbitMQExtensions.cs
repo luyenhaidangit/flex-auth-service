@@ -25,6 +25,7 @@ namespace Flex.Infrastructures.Messaging.RabbitMQ
                 .ValidateOnStart();
 
             services.AddSingleton<IRabbitMQPublisher, RabbitMQPublisher>();
+            services.AddSingleton<IRabbitMQConsumer, RabbitMQConsumer>();
             services.AddHostedService<RabbitMQStartupVerification>();
 
             return services;
