@@ -108,8 +108,35 @@ namespace Flex.Infrastructures.Messaging.RabbitMQ
             if (_disposed) return;
             _disposed = true;
 
-            _channel?.Dispose();
-            _connection?.Dispose();
+            try
+            {
+                if (_channel != null)
+                {
+                    if (_channel.IsOpen)
+                        _channel.Close();
+
+                    _channel.Dispose();
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogWarning(ex, "Error disposing channel");
+            }
+
+            try
+            {
+                if (_connection != null)
+                {
+                    if (_connection.IsOpen)
+                        _connection.Close();
+
+                    _connection.Dispose();
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogWarning(ex, "Error disposing connection");
+            }
         }
     }
 }
