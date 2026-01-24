@@ -17,6 +17,7 @@ namespace Flex.Infrastructures.Messaging.RabbitMQ
         private IModel? _channel;
         private string? _consumerTag;
         private bool _disposed;
+        private readonly CountdownEvent _inflight = new CountdownEvent(0);
 
         public RabbitMQConsumer(
             IOptions<RabbitMQConsumerOptions> options,
@@ -51,31 +52,6 @@ namespace Flex.Infrastructures.Messaging.RabbitMQ
 
             var consumer = new AsyncEventingBasicConsumer(_channel);
 
-            consumer.Received += async (model, ea) =>
-            {
-                try
-                {
-                    var success = await handler(ea.Body.ToArray(), cancellationToken);
-
-                    if (success)
-                    {
-                        _channel.BasicAck(ea.DeliveryTag, multiple: false);
-                    }
-                    else
-                    {
-                        // Requeue for retry
-                        _channel.BasicNack(ea.DeliveryTag, multiple: false, requeue: true);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Error processing message from queue {Queue}", queueName);
-
-                    // NACK without requeue to send to DLQ (if configured)
-                    _channel.BasicNack(ea.DeliveryTag, multiple: false, requeue: false);
-                }
-            };
-
             _consumerTag = _channel.BasicConsume(
                 queue: queueName,
                 autoAck: false,
@@ -83,6 +59,34 @@ namespace Flex.Infrastructures.Messaging.RabbitMQ
 
             _logger.LogInformation("Started consuming from queue {Queue} with tag {ConsumerTag}",
                 queueName, _consumerTag);
+
+            consumer.Received += async (model, ea) =>
+            {
+                _inflight.AddCount();
+
+                try
+                {
+                    var success = await handler(ea.Body.ToArray(), cancellationToken);
+
+                    if (success)
+                    {
+                        _channel.BasicAck(ea.DeliveryTag, multiple: false); // ACK
+                    }
+                    else
+                    {
+                        _channel.BasicNack(ea.DeliveryTag, multiple: false, requeue: true); // NAK requeue
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error processing message from queue {Queue}", queueName);
+                    _channel.BasicNack(ea.DeliveryTag, multiple: false, requeue: false); // NAK
+                }
+                finally
+                {
+                    _inflight.Signal();
+                }
+            };
         }
 
         public Task StopAsync(CancellationToken cancellationToken)
@@ -98,6 +102,15 @@ namespace Flex.Infrastructures.Messaging.RabbitMQ
                 {
                     _logger.LogWarning(ex, "Error stopping consumer {ConsumerTag}", _consumerTag);
                 }
+            }
+
+            try
+            {
+                _inflight.Wait(cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogWarning("StopAsync cancelled while waiting inflight messages");
             }
 
             return Task.CompletedTask;
