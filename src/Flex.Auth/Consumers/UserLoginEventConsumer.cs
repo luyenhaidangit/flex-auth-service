@@ -1,7 +1,5 @@
 using Flex.Domain.Events.Users;
 using Flex.Infrastructures.Messaging.RabbitMQ;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 
 namespace Flex.Auth.Consumers
 {
