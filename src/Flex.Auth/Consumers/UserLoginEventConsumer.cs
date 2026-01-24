@@ -10,7 +10,7 @@ namespace Flex.Auth.Consumers
     /// </summary>
     public class UserLoginConsumer : BaseRabbitMQConsumer<UserLoggedInSuccessEvent>
     {
-        private const string QueueName = "flex.auth.user-login-success.q";
+        private const string QueueName = "q.audit.user-login-success";
 
         public UserLoginConsumer(
             IServiceScopeFactory scopeFactory,
