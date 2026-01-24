@@ -46,19 +46,11 @@ namespace Flex.Infrastructures.Messaging.RabbitMQ
         public void Subscribe(string queueName, Func<byte[], CancellationToken, Task<bool>> handler, CancellationToken cancellationToken)
         {
             _channel = _connection.CreateModel();
-
-            // Set QoS - prefetch count
             _channel.BasicQos(prefetchSize: 0, prefetchCount: (ushort)_options.PrefetchCount, global: false);
 
             var consumer = new AsyncEventingBasicConsumer(_channel);
-
-            _consumerTag = _channel.BasicConsume(
-                queue: queueName,
-                autoAck: false,
-                consumer: consumer);
-
-            _logger.LogInformation("Started consuming from queue {Queue} with tag {ConsumerTag}",
-                queueName, _consumerTag);
+            _consumerTag = _channel.BasicConsume(queue: queueName, autoAck: false,consumer: consumer);
+            _logger.LogInformation("Started consuming from queue {Queue} with tag {ConsumerTag}", queueName, _consumerTag);
 
             consumer.Received += async (model, ea) =>
             {
