@@ -1,3 +1,5 @@
+using Flex.Infrastructures.Messaging.Inbox;
+
 namespace Flex.Infrastructures.Messaging.RabbitMQ
 {
     /// <summary>
@@ -9,9 +11,9 @@ namespace Flex.Infrastructures.Messaging.RabbitMQ
         /// Subscribe to a queue and process messages.
         /// </summary>
         /// <param name="queueName">Name of the queue to consume from</param>
-        /// <param name="handler">Message handler that returns true to ACK, false to NACK</param>
+        /// <param name="handler">Message handler that returns ConsumeResult to indicate ACK/NACK behavior</param>
         /// <param name="cancellationToken">Cancellation token</param>
-        void Subscribe(string queueName, Func<byte[], CancellationToken, Task<bool>> handler, CancellationToken cancellationToken);
+        void Subscribe(string queueName, Func<byte[], CancellationToken, Task<ConsumeResult>> handler, CancellationToken cancellationToken);
 
         /// <summary>
         /// Stop consuming messages gracefully.
