@@ -1,3 +1,4 @@
+using Flex.Infrastructures.Messaging.Inbox;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
@@ -43,7 +44,7 @@ namespace Flex.Infrastructures.Messaging.RabbitMQ
             _connection = factory.CreateConnection();
         }
 
-        public void Subscribe(string queueName, Func<byte[], CancellationToken, Task<bool>> handler, CancellationToken cancellationToken)
+        public void Subscribe(string queueName, Func<byte[], CancellationToken, Task<ConsumeResult>> handler, CancellationToken cancellationToken)
         {
             _channel = _connection.CreateModel();
             _channel.BasicQos(prefetchSize: 0, prefetchCount: (ushort)_options.PrefetchCount, global: false);
@@ -58,15 +59,26 @@ namespace Flex.Infrastructures.Messaging.RabbitMQ
 
                 try
                 {
-                    var success = await handler(ea.Body.ToArray(), cancellationToken);
+                    var result = await handler(ea.Body.ToArray(), cancellationToken);
 
-                    if (success)
+                    switch (result)
                     {
-                        _channel.BasicAck(ea.DeliveryTag, multiple: false); // ACK
-                    }
-                    else
-                    {
-                        _channel.BasicNack(ea.DeliveryTag, multiple: false, requeue: true); // NAK requeue
+                        case ConsumeResult.Ack:
+                            _channel.BasicAck(ea.DeliveryTag, multiple: false);
+                            break;
+
+                        case ConsumeResult.Retry:
+                            _channel.BasicNack(ea.DeliveryTag, multiple: false, requeue: true);
+                            break;
+
+                        case ConsumeResult.DeadLetter:
+                            _channel.BasicNack(ea.DeliveryTag, multiple: false, requeue: false);
+                            break;
+
+                        default:
+                            _logger.LogWarning("Unknown ConsumeResult {Result}, treating as DeadLetter", result);
+                            _channel.BasicNack(ea.DeliveryTag, multiple: false, requeue: false);
+                            break;
                     }
                 }
                 catch (Exception ex)
