@@ -4,7 +4,7 @@ using Flex.Domain.Events.Users;
 using Flex.Infrastructures.Messaging.Inbox;
 using Flex.Infrastructures.Persistence;
 
-namespace Flex.Auth.Handlers
+namespace Flex.Identity.Consumers.UserLoginSuccess
 {
     /// <summary>
     /// Business logic for handling successful user login events.

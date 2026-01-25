@@ -1,7 +1,7 @@
 using Flex.Domain.Events.Users;
 using Flex.Infrastructures.Messaging.RabbitMQ;
 
-namespace Flex.Auth.Consumers
+namespace Flex.Identity.Consumers.UserLoginSuccess
 {
     /// <summary>
     /// RabbitMQ consumer for UserLoggedInSuccessEvent.
