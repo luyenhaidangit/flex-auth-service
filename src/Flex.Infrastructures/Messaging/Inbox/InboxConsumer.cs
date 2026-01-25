@@ -36,7 +36,7 @@ namespace Flex.Infrastructures.Messaging.Inbox
         /// <summary>
         /// Consume a message with inbox deduplication and atomic transaction.
         /// </summary>
-        public async Task<string> ConsumeAsync(
+        public async Task<ConsumeResult> ConsumeAsync(
             EventEnvelope envelope,
             CancellationToken cancellationToken)
         {
@@ -59,11 +59,11 @@ namespace Flex.Infrastructures.Messaging.Inbox
                     await transaction.RollbackAsync(cancellationToken);
                     _logger.LogInformation("Duplicate message {MessageId} for {Handler}, skipping",
                         envelope.Id, _handlerName);
-                    return ConsumeResult.Success;
+                    return ConsumeResult.Ack;
                 }
 
                 // Deserialize and delegate to business handler
-                var message = DeserializeMessage(envelope);
+                var message = this.DeserializeMessage(envelope);
                 await _handler.HandleAsync(message, cancellationToken);
 
                 // Mark as processed
@@ -75,7 +75,7 @@ namespace Flex.Infrastructures.Messaging.Inbox
                 _logger.LogInformation("Successfully processed message {MessageId} with {Handler}",
                     envelope.Id, _handlerName);
 
-                return ConsumeResult.Success;
+                return ConsumeResult.Ack;
             }
             catch (Exception ex) when (IsRetryable(ex))
             {
@@ -97,7 +97,7 @@ namespace Flex.Infrastructures.Messaging.Inbox
                 _logger.LogError(ex, "Permanent error processing {MessageId} with {Handler}",
                     envelope.Id, _handlerName);
 
-                return ConsumeResult.Dead;
+                return ConsumeResult.DeadLetter;
             }
         }
 

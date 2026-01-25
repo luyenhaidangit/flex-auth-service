@@ -3,7 +3,6 @@ using Flex.Domain.Entities;
 using Flex.Domain.Events.Users;
 using Flex.Infrastructures.Messaging.Inbox;
 using Flex.Infrastructures.Persistence;
-using Microsoft.Extensions.Logging;
 
 namespace Flex.Auth.Handlers
 {

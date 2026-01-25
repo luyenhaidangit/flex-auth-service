@@ -37,7 +37,7 @@ namespace Flex.Infrastructures.Messaging.RabbitMQ
         {
             _rabbitConsumer.Subscribe(
                 queueName: _queueName,
-                handler: HandleMessageAsync,
+                handler: this.HandleMessageAsync,
                 cancellationToken: stoppingToken);
 
             _logger.LogInformation("{Consumer} started, listening on queue {Queue}",
@@ -54,7 +54,7 @@ namespace Flex.Infrastructures.Messaging.RabbitMQ
             _logger.LogInformation("{Consumer} stopped", GetType().Name);
         }
 
-        private async Task<bool> HandleMessageAsync(byte[] body, CancellationToken cancellationToken)
+        private async Task<ConsumeResult> HandleMessageAsync(byte[] body, CancellationToken cancellationToken)
         {
             using var scope = _scopeFactory.CreateScope();
             var inboxConsumer = scope.ServiceProvider.GetRequiredService<InboxConsumer<TMessage>>();
@@ -66,20 +66,13 @@ namespace Flex.Infrastructures.Messaging.RabbitMQ
             if (envelope == null)
             {
                 _logger.LogWarning("Failed to deserialize envelope");
-                return true; // ACK to avoid infinite redelivery
+                return ConsumeResult.Ack; // Prevent infinite redelivery
             }
 
-            // Delegate to inbox consumer (handles dedup + business logic)
+            // Delegate to inbox consumer - returns ConsumeResult directly
             var result = await inboxConsumer.ConsumeAsync(envelope, cancellationToken);
 
-            // Map result to RabbitMQ action
-            return result switch
-            {
-                ConsumeResult.Success => true,  // ACK
-                ConsumeResult.Retry => false,   // NACK + requeue
-                ConsumeResult.Dead => true,     // ACK (send to DLQ via RabbitMQ config)
-                _ => true
-            };
+            return result;
         }
     }
 }
