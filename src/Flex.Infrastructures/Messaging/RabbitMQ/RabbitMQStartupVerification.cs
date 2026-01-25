@@ -8,7 +8,9 @@ namespace Flex.Infrastructures.Messaging.RabbitMQ
 {
     /// <summary>
     /// Hosted service that verifies RabbitMQ exchange existence during application startup.
-    /// Application will fail to start if required exchange does not exist.
+    /// - For authentication/config errors: Fails fast (app won't start)
+    /// - For exchange not found: Fails fast (publisher cannot function)
+    /// - For connection errors: Logs warning and continues (relies on auto-recovery)
     /// </summary>
     internal sealed class RabbitMQStartupVerification : IHostedService
     {
@@ -56,6 +58,7 @@ namespace Flex.Infrastructures.Messaging.RabbitMQ
             }
             catch (BrokerUnreachableException ex) when (ex.InnerException is AuthenticationFailureException)
             {
+                // FAIL FAST: Authentication errors cannot self-recover
                 var authEx = (AuthenticationFailureException)ex.InnerException;
                 var errorMessage =
                     $"Application startup failed: RabbitMQ authentication failed. " +
@@ -71,21 +74,9 @@ namespace Flex.Infrastructures.Messaging.RabbitMQ
 
                 throw new InvalidOperationException(errorMessage, ex);
             }
-            catch (BrokerUnreachableException ex)
-            {
-                var errorMessage =
-                    $"Application startup failed: Cannot connect to RabbitMQ server. " +
-                    $"Please check if RabbitMQ is running and network configuration is correct.";
-
-                _logger.LogCritical(ex,
-                    "Failed to connect to RabbitMQ server {HostName}:{Port}",
-                    _options.HostName,
-                    _options.Port);
-
-                throw new InvalidOperationException(errorMessage, ex);
-            }
             catch (OperationInterruptedException ex) when (ex.ShutdownReason?.ReplyCode == 404)
             {
+                // FAIL FAST: Exchange doesn't exist - publisher cannot function
                 var errorMessage =
                     $"Application startup failed: Required RabbitMQ exchange '{_options.ExchangeName}' does not exist. " +
                     $"Please create the exchange before starting the application.";
@@ -97,18 +88,28 @@ namespace Flex.Infrastructures.Messaging.RabbitMQ
 
                 throw new InvalidOperationException(errorMessage, ex);
             }
+            catch (BrokerUnreachableException ex)
+            {
+                // WARNING: Connection errors - RabbitMQ client has auto-recovery
+                _logger.LogWarning(ex,
+                    "Cannot connect to RabbitMQ server {HostName}:{Port} during startup. " +
+                    "Application will continue to start. RabbitMQ client will attempt auto-recovery when broker becomes available.",
+                    _options.HostName,
+                    _options.Port);
+
+                return Task.CompletedTask;
+            }
             catch (Exception ex)
             {
-                var errorMessage =
-                    $"Application startup failed: Unexpected error during RabbitMQ verification.";
-
-                _logger.LogCritical(ex,
-                    "Unexpected error verifying RabbitMQ exchange '{ExchangeName}' on server {HostName}:{Port}",
+                // WARNING: Unexpected errors - let app start but log warning
+                _logger.LogWarning(ex,
+                    "Unexpected error verifying RabbitMQ exchange '{ExchangeName}' on server {HostName}:{Port}. " +
+                    "Application will continue to start. Please check RabbitMQ configuration.",
                     _options.ExchangeName,
                     _options.HostName,
                     _options.Port);
 
-                throw new InvalidOperationException(errorMessage, ex);
+                return Task.CompletedTask;
             }
         }
 
