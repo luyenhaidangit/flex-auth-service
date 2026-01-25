@@ -7,7 +7,6 @@ using Flex.Identity.Services.Interfaces;
 using Flex.Infrastructures.Authentication;
 using Flex.Infrastructures.EntityFrameworkCore;
 using Flex.Infrastructures.Http;
-using Flex.Infrastructures.Messaging.Inbox;
 using Flex.Infrastructures.Messaging.Outbox;
 using Flex.Infrastructures.Messaging.RabbitMQ;
 using Flex.Infrastructures.Observability;
@@ -16,9 +15,7 @@ using Flex.Infrastructures.Persistence;
 using Flex.Infrastructures.RateLimiting;
 using Flex.Infrastructures.Resilience;
 using Flex.Infrastructures.Routing;
-using Flex.Domain.Events.Users;
 using Microsoft.AspNetCore.Identity;
-using Flex.Identity.Consumers.UserLoginSuccess;
 
 namespace Flex.Identity.Extensions
 {
@@ -60,19 +57,6 @@ namespace Flex.Identity.Extensions
             // Message queue
             services.AddRabbitMQ(configuration);
             services.AddOutbox<EventRoutingResolver>();
-
-            // Message consumer infrastructure
-            services.AddRabbitMQConsumer(configuration);
-            services.AddInbox();
-
-            // Register message handlers (application layer - clean business logic)
-            services.AddScoped<IMessageHandler<UserLoggedInSuccessEvent>, UserLoginSuccessHandler>();
-
-            // Register inbox consumers (scoped - created per message)
-            services.AddScoped<InboxConsumer<UserLoggedInSuccessEvent>>();
-
-            // Background Services
-            services.AddHostedService<UserLoginConsumer>();
 
             // CORS
             services.AddCors(options =>
