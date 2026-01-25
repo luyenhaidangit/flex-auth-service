@@ -12,10 +12,10 @@ namespace Flex.Identity.Events
     public sealed class EventRoutingResolver : IEventRoutingResolver
     {
         private readonly string _defaultExchange;
+        
         public static class RoutingKeys
         {
-            public const string UserLoginSuccess = "user.login.success";
-            public const string UserLoginFailed = "user.login.failed";
+            public const string UserLogin = "user.login";
         }
 
         public EventRoutingResolver(IOptions<RabbitMQOptions> options)
@@ -38,8 +38,7 @@ namespace Flex.Identity.Events
         {
             return eventType switch
             {
-                _ when eventType == typeof(UserLoggedInSuccessEvent) => RoutingKeys.UserLoginSuccess,
-                _ when eventType == typeof(UserLoggedInFailedEvent) => RoutingKeys.UserLoginFailed,
+                _ when eventType == typeof(UserLoginAttemptedEvent) => RoutingKeys.UserLogin,
                 _ => throw new InvalidOperationException(
                     $"No routing defined for event type: {eventType.Name}. " +
                     $"Please add routing configuration in {nameof(EventRoutingResolver)}.")

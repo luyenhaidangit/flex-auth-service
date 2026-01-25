@@ -47,34 +47,66 @@ namespace Flex.Identity.Services
 
         public async Task<LoginResult> LoginAsync(LoginRequest request, CancellationToken ct = default)
         {
-            // Validate
+            // Prepare data
+            var ipAddress = _requestContextAccessor.ClientIp;
+
+            // Validate user exists
             var user = await _userRepository.GetByUserNameAsync(request.UserName, ct);
             if (user is null)
             {
+                // Publish FAILED event
+                var failedEvent = new UserLoginAttemptedEvent(
+                    UserId: null,
+                    UserName: request.UserName,
+                    LoginType: LoginHistoryConstants.LoginType.User,
+                    IpAddress: ipAddress,
+                    IsSuccess: false
+                );
+                await _outboxWriter.AddAsync(failedEvent, ct);
+
                 throw new ValidationException(ResponseCode.InvalidCredentials);
             }
 
+            // Validate password exists
             if (string.IsNullOrEmpty(user.PasswordHash))
             {
+                var failedEvent = new UserLoginAttemptedEvent(
+                    UserId: user.Id,
+                    UserName: user.UserName,
+                    LoginType: LoginHistoryConstants.LoginType.User,
+                    IpAddress: ipAddress,
+                    IsSuccess: false
+                );
+                await _outboxWriter.AddAsync(failedEvent, ct);
+
                 throw new ValidationException(ResponseCode.InvalidCredentials);
             }
 
+            // Verify password
             var verify = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, request.Password);
             if (verify == PasswordVerificationResult.Failed)
             {
+                var failedEvent = new UserLoginAttemptedEvent(
+                    UserId: user.Id,
+                    UserName: user.UserName,
+                    LoginType: LoginHistoryConstants.LoginType.User,
+                    IpAddress: ipAddress,
+                    IsSuccess: false
+                );
+                await _outboxWriter.AddAsync(failedEvent, ct);
+
                 throw new ValidationException(ResponseCode.InvalidCredentials);
             }
 
-            // Publish success event to outbox
-            var ipAddress = _requestContextAccessor.ClientIp;
-            var loginEvent = new UserLoggedInSuccessEvent(
+            // Publish SUCCESS event
+            var successEvent = new UserLoginAttemptedEvent(
                 UserId: user.Id,
-                UserName: user.UserName ?? user.Id.ToString(),
+                UserName: user.UserName,
                 LoginType: LoginHistoryConstants.LoginType.User,
-                IpAddress: ipAddress
+                IpAddress: ipAddress,
+                IsSuccess: true
             );
-
-            await _outboxWriter.AddAsync(loginEvent, ct);
+            await _outboxWriter.AddAsync(successEvent, ct);
             await _dbContext.SaveChangesAsync(ct);
 
             // Include standard claims
