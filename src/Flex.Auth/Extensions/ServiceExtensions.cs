@@ -72,7 +72,6 @@ namespace Flex.Identity.Extensions
             services.AddScoped<InboxConsumer<UserLoggedInSuccessEvent>>();
 
             // Background Services
-            // services.AddHostedService<OutboxProcessorBackgroundService>();
             services.AddHostedService<UserLoginConsumer>();
 
             // CORS
