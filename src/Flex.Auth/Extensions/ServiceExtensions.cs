@@ -16,10 +16,9 @@ using Flex.Infrastructures.Persistence;
 using Flex.Infrastructures.RateLimiting;
 using Flex.Infrastructures.Resilience;
 using Flex.Infrastructures.Routing;
-using Flex.Auth.Handlers;
-using Flex.Auth.Consumers;
 using Flex.Domain.Events.Users;
 using Microsoft.AspNetCore.Identity;
+using Flex.Identity.Consumers.UserLoginSuccess;
 
 namespace Flex.Identity.Extensions
 {
