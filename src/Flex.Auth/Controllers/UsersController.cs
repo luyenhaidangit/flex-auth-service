@@ -23,6 +23,9 @@ namespace Flex.Identity.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllUsers()
         {
+            ThreadPool.GetMinThreads(out int worker, out int io);
+            ThreadPool.GetMaxThreads(out int maxWorker, out int maxIO);
+
             var users = await _userService.GetAllAsync();
             return Ok(Result.Success(users));
         }
