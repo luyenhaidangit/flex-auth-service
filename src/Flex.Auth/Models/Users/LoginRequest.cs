@@ -1,4 +1,4 @@
-﻿namespace Flex.Identity.Models.Users
+﻿namespace Flex.Auth.Models.Users
 {
     public class LoginRequest
     {

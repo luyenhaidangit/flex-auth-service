@@ -1,9 +1,9 @@
-﻿using Flex.Identity.Models.Users;
-using Flex.Identity.Services.Interfaces;
+﻿using Flex.Auth.Models.Users;
+using Flex.Auth.Services.Interfaces;
 using Flex.Infrastructures.Responses;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Flex.Identity.Controllers
+namespace Flex.Auth.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]

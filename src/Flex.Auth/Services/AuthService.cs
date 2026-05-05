@@ -1,9 +1,9 @@
-using Flex.Domain.Constants;
+﻿using Flex.Domain.Constants;
 using Flex.Domain.Entities;
 using Flex.Domain.Events.Users;
-using Flex.Identity.Models.Users;
-using Flex.Identity.Repositories.Interfaces;
-using Flex.Identity.Services.Interfaces;
+using Flex.Auth.Models.Users;
+using Flex.Auth.Repositories.Interfaces;
+using Flex.Auth.Services.Interfaces;
 using Flex.Infrastructures.Authentication;
 using Flex.Infrastructures.Messaging.Outbox;
 using Flex.Infrastructures.Exceptions;
@@ -15,7 +15,7 @@ using Microsoft.Extensions.Options;
 using System.Security.Claims;
 using ClaimTypesApp = Flex.Infrastructures.Authentication.ClaimTypes;
 
-namespace Flex.Identity.Services
+namespace Flex.Auth.Services
 {
     public class AuthService : IAuthService
     {

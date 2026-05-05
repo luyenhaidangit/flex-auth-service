@@ -1,6 +1,6 @@
 ﻿using Flex.Domain.Entities;
 
-namespace Flex.Identity.Repositories.Interfaces
+namespace Flex.Auth.Repositories.Interfaces
 {
     public interface IUserRepository
     {

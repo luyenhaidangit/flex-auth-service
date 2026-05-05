@@ -1,13 +1,13 @@
 ﻿using Flex.Domain.Entities;
-using Flex.Identity.Models.Users;
-using Flex.Identity.Repositories.Interfaces;
-using Flex.Identity.Services.Interfaces;
+using Flex.Auth.Models.Users;
+using Flex.Auth.Repositories.Interfaces;
+using Flex.Auth.Services.Interfaces;
 using Flex.Infrastructures.Exceptions;
 using Flex.Infrastructures.Random;
 using Flex.Infrastructures.Responses;
 using Microsoft.AspNetCore.Identity;
 
-namespace Flex.Identity.Services
+namespace Flex.Auth.Services
 {
     public class UserService : IUserService
     {

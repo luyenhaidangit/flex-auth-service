@@ -14,6 +14,12 @@ namespace Flex.Infrastructures.OpenApi
         {
             services.AddSwaggerGen(c =>
             {
+                c.SwaggerDoc("v1", new Microsoft.OpenApi.OpenApiInfo
+                {
+                    Title = "Flex.Auth",
+                    Version = "v1"
+                });
+
                 c.DocumentFilter<LowerCaseDocumentFilter>();
 
                 var entryAssembly = Assembly.GetEntryAssembly();

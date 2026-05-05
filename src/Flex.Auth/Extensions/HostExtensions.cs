@@ -1,4 +1,4 @@
-﻿namespace Flex.Identity.Extensions
+﻿namespace Flex.Auth.Extensions
 {
     public static class HostExtensions
     {

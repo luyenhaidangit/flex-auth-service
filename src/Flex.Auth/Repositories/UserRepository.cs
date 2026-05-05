@@ -1,9 +1,9 @@
-using Flex.Domain.Entities;
-using Flex.Identity.Repositories.Interfaces;
+﻿using Flex.Domain.Entities;
+using Flex.Auth.Repositories.Interfaces;
 using Flex.Infrastructures.Persistence;
 using Microsoft.EntityFrameworkCore;
 
-namespace Flex.Identity.Repositories
+namespace Flex.Auth.Repositories
 {
     public class UserRepository : IUserRepository
     {

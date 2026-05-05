@@ -1,9 +1,9 @@
-using Flex.Domain.Entities;
-using Flex.Identity.Events;
-using Flex.Identity.Repositories;
-using Flex.Identity.Repositories.Interfaces;
-using Flex.Identity.Services;
-using Flex.Identity.Services.Interfaces;
+﻿using Flex.Domain.Entities;
+using Flex.Auth.Events;
+using Flex.Auth.Repositories;
+using Flex.Auth.Repositories.Interfaces;
+using Flex.Auth.Services;
+using Flex.Auth.Services.Interfaces;
 using Flex.Infrastructures.Authentication;
 using Flex.Infrastructures.EntityFrameworkCore;
 using Flex.Infrastructures.Http;
@@ -17,7 +17,7 @@ using Flex.Infrastructures.Resilience;
 using Flex.Infrastructures.Routing;
 using Microsoft.AspNetCore.Identity;
 
-namespace Flex.Identity.Extensions
+namespace Flex.Auth.Extensions
 {
     public static class ServiceExtensions
     {
@@ -35,7 +35,7 @@ namespace Flex.Identity.Extensions
             services.ConfigureSwagger();
 
             // Global Logging
-            services.AddGlobalLogging(configuration, serviceName: "IdentityService");
+            services.AddGlobalLogging(configuration, serviceName: "FlexAuthService");
 
             // Customize
             services.AddRoutingConventions();

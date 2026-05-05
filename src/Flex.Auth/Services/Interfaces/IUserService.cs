@@ -1,6 +1,6 @@
-﻿using Flex.Identity.Models.Users;
+﻿using Flex.Auth.Models.Users;
 
-namespace Flex.Identity.Services.Interfaces
+namespace Flex.Auth.Services.Interfaces
 {
     public interface IUserService
     {

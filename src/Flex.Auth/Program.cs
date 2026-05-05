@@ -1,4 +1,4 @@
-using Flex.Identity.Extensions;
+﻿using Flex.Auth.Extensions;
 using Flex.Infrastructures.Logging;
 using Serilog;
 

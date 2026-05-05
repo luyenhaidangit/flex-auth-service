@@ -1,9 +1,9 @@
-using Flex.Domain.Events.Users;
+﻿using Flex.Domain.Events.Users;
 using Flex.Infrastructures.Messaging.Outbox;
 using Flex.Infrastructures.Messaging.RabbitMQ;
 using Microsoft.Extensions.Options;
 
-namespace Flex.Identity.Events
+namespace Flex.Auth.Events
 {
     /// <summary>
     /// Application-level implementation of IEventRoutingResolver that maps event types to RabbitMQ routing.

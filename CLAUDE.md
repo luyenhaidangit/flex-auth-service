@@ -1,10 +1,10 @@
-# CLAUDE.md
+﻿# CLAUDE.md
 
 This file provides guidance to Claude Code/Codex when working in the `flex-auth-service` repository.
 
 ## Project Overview
 
-`flex-auth-service` is a .NET 9 / ASP.NET Core Identity service responsible for authentication, JWT issuance, basic user management.
+`flex-auth-service` is a .NET 9 / ASP.NET Core Flex.Auth service responsible for authentication, JWT issuance, and basic user management.
 
 The service currently focuses on:
 
@@ -19,14 +19,14 @@ The service currently focuses on:
 The main solution is:
 
 ```powershell
-Flex.Identity.sln
+Flex.Auth.sln
 ```
 
 Current projects:
 
 | Project | Path | Purpose |
 |---|---|---|
-| `Flex.Identity` | `src/Flex.Auth/Flex.Identity.csproj` | ASP.NET Core Web API host for the Auth/Identity service |
+| `Flex.Auth` | `src/Flex.Auth/Flex.Auth.csproj` | ASP.NET Core Web API host for the Flex.Auth service. The project file is still named `Flex.Auth.csproj` in the current repository. |
 | `Flex.Domain` | `src/Flex.Domain/Flex.Domain.csproj` | Domain entities, domain events, constants, and base abstractions |
 | `Flex.Infrastructures` | `src/Flex.Infrastructures/Flex.Infrastructures.csproj` | Cross-cutting infrastructure: EF Core/Oracle, JWT, RabbitMQ, Outbox/Inbox, logging, middleware, response handling, resilience, OpenAPI, and rate limiting |
 
@@ -51,16 +51,16 @@ Run commands from the repository root:
 
 ```powershell
 # Restore dependencies
-dotnet restore Flex.Identity.sln
+dotnet restore Flex.Auth.sln
 
 # Build the entire solution
-dotnet build Flex.Identity.sln
+dotnet build Flex.Auth.sln
 
 # Build the API host project only
-dotnet build src/Flex.Auth/Flex.Identity.csproj
+dotnet build src/Flex.Auth/Flex.Auth.csproj
 
-# Run the Auth/Identity API locally
-dotnet run --project src/Flex.Auth/Flex.Identity.csproj
+# Run the Flex.Auth API locally
+dotnet run --project src/Flex.Auth/Flex.Auth.csproj
 ```
 
 Local launch profiles are defined in `src/Flex.Auth/Properties/launchSettings.json`:
@@ -74,7 +74,7 @@ To run with the development environment in PowerShell:
 
 ```powershell
 $env:ASPNETCORE_ENVIRONMENT = "Development"
-dotnet run --project src/Flex.Auth/Flex.Identity.csproj
+dotnet run --project src/Flex.Auth/Flex.Auth.csproj
 ```
 
 ## Runtime Configuration
@@ -130,7 +130,7 @@ Use the existing naming style in the repository instead of conventions from the 
 
 | Type | Convention | Example |
 |---|---|---|
-| Namespace | Keep the current root namespaces: `Flex.Identity`, `Flex.Domain`, `Flex.Infrastructures` | `Flex.Identity.Services` |
+| Namespace | Use the Auth service namespace consistently. New code should use `Flex.Auth`, `Flex.Domain`, or `Flex.Infrastructures` as appropriate. | `Flex.Auth.Services` |
 | Entity | Use clear singular domain names without an `Entity` suffix unless an existing pattern requires it | `User`, `Role`, `LoginHistory`, `OutboxMessage` |
 | Entity base type | Use `EntityBase<TKey>` only when the entity needs the shared domain base fields | `User : EntityBase<long>` |
 | EF configuration | Use `{EntityName}Configuration` and implement `IEntityTypeConfiguration<TEntity>` | `UserConfiguration` |
@@ -223,7 +223,7 @@ GitNexus is not currently configured for this repository.
 - Avoid adding new NuGet packages when existing infrastructure or BCL APIs are sufficient.
 - Prefer small, explicit models over generic dictionaries or anonymous response shapes for public API contracts.
 - Do not introduce cross-layer shortcuts. `Flex.Domain` should not depend on infrastructure or API projects.
-- Keep cross-cutting behavior in `Flex.Infrastructures`; keep Auth/Identity-specific workflows in `Flex.Identity`.
+- Keep cross-cutting behavior in `Flex.Infrastructures`; keep Flex.Auth-specific workflows in the Auth service project.
 
 ## Authentication and Token Flow
 
