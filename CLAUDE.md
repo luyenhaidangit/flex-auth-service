@@ -252,3 +252,13 @@ Security rules:
 - Do not log raw passwords, password hashes, JWTs, signing keys, or authentication headers.
 - Keep token claims minimal and avoid adding sensitive profile data unless required by downstream authorization.
 - If adding refresh token, logout, blacklist, MFA, SSO, or tenant-selection flows, update this section and the API documentation together.
+
+## Documentation Maintenance
+
+Keep `CLAUDE.md` aligned with the actual codebase.
+
+- When changing architecture, project structure, infrastructure wiring, configuration, authentication flow, persistence patterns, messaging, logging, error handling, or build/deployment behavior, update this file in the same change.
+- If implementing a new pattern that is not covered here, add a concise guideline so future agents follow it consistently.
+- If removing or replacing an existing pattern documented here, update or delete the outdated guidance.
+- Do not leave instructions that reference removed files, old project names, unavailable tools, or obsolete workflows.
+- Treat this file as the source of working guidance for agents, not as historical documentation.
