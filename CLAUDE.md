@@ -211,55 +211,44 @@ GitNexus is not currently configured for this repository.
 - Use normal code navigation instead: `rg`, solution/project references, EF Core mappings, and direct call-site inspection.
 - If GitNexus is added later, update this section with the real repository name, available tools, index location, and required workflow.
 
-<!-- ## Quy ước code
+## Code Conventions
 
-- Target framework là `net9.0`, nullable và implicit usings đang bật.
-- Giữ namespace hiện tại: `Flex.Identity`, `Flex.Domain`, `Flex.Infrastructures`.
-- Controller mỏng, business logic đặt trong service.
-- Service nhận dependency qua constructor DI trực tiếp. Không áp dụng pattern `IServiceProvider` lazy resolve từ codebase cũ.
-- Repository dùng `IdentityDbContext` và EF Core async APIs.
-- Query đọc nên dùng `AsNoTracking()` nếu không cần update entity.
-- Dùng `CancellationToken` cho I/O mới nếu method public có thể nhận từ controller hoặc background service.
-- Không thêm dependency mới nếu extension hiện có đã giải quyết được.
-- Ưu tiên sửa đúng lớp: controller chỉ điều phối HTTP, service xử lý business, repository xử lý persistence, infrastructure xử lý cross-cutting concerns. -->
+- Target framework is `net9.0`; nullable reference types and implicit usings are enabled.
+- Keep controllers thin. Controllers should handle HTTP concerns, delegate business logic to services, and return `Result` responses.
+- Keep service methods focused on business workflows, validation, orchestration, and transaction boundaries.
+- Keep repositories focused on persistence and EF Core queries. Do not put business decisions in repositories.
+- Use async EF Core APIs for database operations.
+- Pass `CancellationToken` through new public async paths when the token can come from a controller action or background service.
+- Use constructor injection for dependencies. Do not use service locator patterns for normal application code.
+- Avoid adding new NuGet packages when existing infrastructure or BCL APIs are sufficient.
+- Prefer small, explicit models over generic dictionaries or anonymous response shapes for public API contracts.
+- Do not introduce cross-layer shortcuts. `Flex.Domain` should not depend on infrastructure or API projects.
+- Keep cross-cutting behavior in `Flex.Infrastructures`; keep Auth/Identity-specific workflows in `Flex.Identity`.
 
-<!-- ## Cảnh báo repo hiện tại
+## Authentication and Token Flow
 
-- `Dockerfile` đang build `src/Flex.Apigateway/Flex.Apigateway.csproj` và chạy `Flex.Apigateway.dll`, không khớp service hiện tại. Không dùng Dockerfile này để build Auth service nếu chưa sửa sang `src/Flex.Auth/Flex.Identity.csproj`.
-- `Jenkinsfile` đang build/push image `flex-apigateway` và stage build/test đang ghi "Nothing to do". Không xem đây là pipeline production đúng cho Auth service.
-- `src/Flex.Auth/Flex.Auth.http` vẫn gọi `/weatherforecast`, endpoint này không tồn tại trong code hiện tại.
-- `docs/technical/auth.md` và một số file docs có nội dung thiết kế rộng hơn code hiện tại, bao gồm refresh token, logout, blacklist, multi-tenant, OAuth2, SSO. Phân biệt rõ phần "thiết kế/ý tưởng" với phần đã implement.
-- `IdentitySeed` dùng `UserManager<User>` và `RoleManager<Role>`, nhưng service hiện tại chưa đăng ký ASP.NET Core Identity manager đầy đủ trong `AddInfrastructure()`. Kiểm tra trước khi gọi seed.
-- `CLAUDE.md` và `src/CLAUDE.md` đang là file untracked theo `git status` tại thời điểm rà soát. -->
+Authentication is implemented with JWT Bearer authentication and the login workflow in `AuthService`.
 
-<!-- ## Checklist trước khi hoàn tất thay đổi code
+JWT setup:
 
-1. Chạy `dotnet build Flex.Identity.sln` nếu thay đổi code C#.
-2. Nếu thay đổi endpoint, cập nhật route/API docs hoặc `.http` file liên quan.
-3. Nếu thay đổi config, kiểm tra override bằng environment variables và không ghi thêm secret thật.
-4. Nếu thay đổi persistence, kiểm tra entity configuration, Oracle column type, index và migration/script tương ứng.
-5. Nếu thay đổi login/outbox, kiểm tra cả luồng thành công và thất bại vì cả hai đều ghi event.
-6. Nếu thay đổi middleware, kiểm tra thứ tự pipeline trong `UseInfrastructure()`. -->
+- JWT options are bound from the `JwtSettings` configuration section.
+- Token validation must keep issuer, audience, lifetime, and signing key validation enabled.
+- `MapInboundClaims = false` is intentional; use claim names from `Flex.Infrastructures.Authentication.ClaimTypes`.
+- `[AllowAnonymous]` endpoints are allowed to bypass bearer token validation.
+- `TokenService.GenerateToken()` creates tokens from `JwtSettings` and explicit claims.
 
-<!-- ## Authentication và JWT
+Login flow:
 
-JWT được cấu hình trong `src/Flex.Infrastructures/Authentication/AuthenticationExtensions.cs`.
+1. `AuthService.LoginAsync()` reads request context such as client IP through `IRequestContextAccessor`.
+2. The user is loaded by normalized username through `IUserRepository`.
+3. Passwords are verified with `IPasswordHasher<User>`.
+4. Failed and successful login attempts both create `UserLoginAttemptedEvent` records through `IOutboxWriter`.
+5. `IdentityDbContext.SaveChangesAsync()` persists the outbox event before returning the token.
+6. The issued JWT currently includes claims such as `jti`, `iss`, `aud`, `sub`, and `email`.
 
-Điểm cần giữ:
+Security rules:
 
-- Config bind từ section `JwtSettings`.
-- Validate issuer, audience, lifetime và signing key.
-- `MapInboundClaims = false`, vì vậy dùng claim name nội bộ trong `Flex.Infrastructures.Authentication.ClaimTypes`.
-- Endpoint có `[AllowAnonymous]` được bypass token validation trong `OnMessageReceived`.
-- `TokenService.GenerateToken()` tạo token bằng `JwtSecurityToken` và `JwtSettings`.
-
-`AuthService.LoginAsync()` hiện xử lý:
-
-1. Lấy IP qua `IRequestContextAccessor`.
-2. Tìm user theo normalized username.
-3. Ghi event login failed nếu user không tồn tại, không có password hash hoặc password sai.
-4. Ghi event login success nếu xác thực thành công.
-5. `SaveChangesAsync()` để persist outbox cùng transaction DbContext.
-6. Sinh JWT với `jti`, `iss`, `aud`, `sub`, `email`.
-
-Không trả thông tin phân biệt user không tồn tại và sai mật khẩu ra client; dùng `ValidationException(ResponseCode.InvalidCredentials)`. -->
+- Do not reveal whether the username or password was wrong. Use `ValidationException(ResponseCode.InvalidCredentials)`.
+- Do not log raw passwords, password hashes, JWTs, signing keys, or authentication headers.
+- Keep token claims minimal and avoid adding sensitive profile data unless required by downstream authorization.
+- If adding refresh token, logout, blacklist, MFA, SSO, or tenant-selection flows, update this section and the API documentation together.
