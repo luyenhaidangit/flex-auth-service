@@ -39,7 +39,7 @@ namespace Flex.Infrastructures.Messaging.Outbox
                 return;
             }
 
-            _logger.LogInformation("Processing {Count} pending outbox messages", messages.Count);
+            _logger.LogDebug("Processing {Count} pending outbox messages", messages.Count);
 
             foreach (var msg in messages)
             {
@@ -56,10 +56,16 @@ namespace Flex.Infrastructures.Messaging.Outbox
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Failed to process outbox message {MessageId} of type {EventType}",
-                        msg.Id, msg.EventType);
-
                     await this.MarkAsFailedAsync(msg, ex.Message, cancellationToken);
+
+                    _logger.LogError(ex, "Failed to publish outbox message {MessageId} of type {EventType}. Retry={RetryCount}, Status={Status}",
+                        msg.Id, msg.EventType, msg.RetryCount, msg.Status);
+
+                    if (msg.Status == OutboxMessageStatus.Dead)
+                    {
+                        _logger.LogWarning("Outbox message {MessageId} of type {EventType} reached max retry count {RetryCount} and was marked as dead",
+                            msg.Id, msg.EventType, msg.RetryCount);
+                    }
                 }
             }
         }
