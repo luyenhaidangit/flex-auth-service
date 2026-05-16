@@ -30,7 +30,6 @@ namespace Flex.Infrastructures.Logging
 
             // Create logger configuration
             var loggerConfig = new LoggerConfiguration()
-                .MinimumLevel.Information()
                 .ReadFrom.Configuration(configuration)
                 .Enrich.FromLogContext()
                 .Enrich.WithMachineName()
