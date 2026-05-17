@@ -12,12 +12,15 @@ namespace Flex.Infrastructures.Messaging.RabbitMQ
     /// </summary>
     public class RabbitMQConsumer : IRabbitMQConsumer
     {
-        private readonly IConnection _connection;
+        private readonly ConnectionFactory _factory;
         private readonly RabbitMQConsumerOptions _options;
         private readonly ILogger<RabbitMQConsumer> _logger;
+        private IConnection? _connection;
         private IModel? _channel;
         private string? _consumerTag;
         private string? _queueName;
+        private CancellationTokenSource? _subscriptionCts;
+        private Task? _subscriptionTask;
         private bool _disposed;
         private readonly CountdownEvent _inflight = new CountdownEvent(0);
 
@@ -28,7 +31,7 @@ namespace Flex.Infrastructures.Messaging.RabbitMQ
             _options = options.Value;
             _logger = logger;
 
-            var factory = new ConnectionFactory
+            _factory = new ConnectionFactory
             {
                 HostName = _options.HostName,
                 Port = _options.Port,
@@ -41,8 +44,56 @@ namespace Flex.Infrastructures.Messaging.RabbitMQ
                 ClientProvidedName = $"{_options.ClientProvidedName}-consumer",
                 DispatchConsumersAsync = true
             };
+        }
 
-            _connection = factory.CreateConnection();
+        public void Subscribe(string queueName, Func<byte[], CancellationToken, Task<ConsumeResult>> handler, CancellationToken cancellationToken)
+        {
+            _queueName = queueName;
+            _subscriptionCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            _subscriptionTask = Task.Run(
+                () => SubscribeWithRetryAsync(queueName, handler, _subscriptionCts.Token),
+                CancellationToken.None);
+        }
+
+        private async Task SubscribeWithRetryAsync(
+            string queueName,
+            Func<byte[], CancellationToken, Task<ConsumeResult>> handler,
+            CancellationToken cancellationToken)
+        {
+            while (!cancellationToken.IsCancellationRequested)
+            {
+                try
+                {
+                    Connect();
+                    StartConsuming(queueName, handler, cancellationToken);
+                    return;
+                }
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    CleanupConnection();
+
+                    _logger.LogWarning(
+                        ex,
+                        "Cannot connect RabbitMQ consumer to server {HostName}:{Port} for queue {Queue}. Retrying in {DelaySeconds} seconds.",
+                        _options.HostName,
+                        _options.Port,
+                        queueName,
+                        _options.NetworkRecoveryIntervalSeconds);
+
+                    await Task.Delay(
+                        TimeSpan.FromSeconds(_options.NetworkRecoveryIntervalSeconds),
+                        cancellationToken);
+                }
+            }
+        }
+
+        private void Connect()
+        {
+            _connection = _factory.CreateConnection();
 
             _logger.LogInformation(
                 "Connected RabbitMQ consumer to server {HostName}:{Port}, virtual host '{VirtualHost}', exchange '{ExchangeName}'",
@@ -63,15 +114,22 @@ namespace Flex.Infrastructures.Messaging.RabbitMQ
             }
         }
 
-        public void Subscribe(string queueName, Func<byte[], CancellationToken, Task<ConsumeResult>> handler, CancellationToken cancellationToken)
+        private void StartConsuming(
+            string queueName,
+            Func<byte[], CancellationToken, Task<ConsumeResult>> handler,
+            CancellationToken cancellationToken)
         {
-            _queueName = queueName;
+            if (_connection == null)
+            {
+                throw new InvalidOperationException("RabbitMQ connection has not been created.");
+            }
+
             _channel = _connection.CreateModel();
             _channel.ModelShutdown += OnModelShutdown;
             _channel.BasicQos(prefetchSize: 0, prefetchCount: (ushort)_options.PrefetchCount, global: false);
 
             var consumer = new AsyncEventingBasicConsumer(_channel);
-            _consumerTag = _channel.BasicConsume(queue: queueName, autoAck: false,consumer: consumer);
+            _consumerTag = _channel.BasicConsume(queue: queueName, autoAck: false, consumer: consumer);
             _logger.LogInformation(
                 "Started consuming from RabbitMQ queue {Queue} with tag {ConsumerTag}",
                 queueName,
@@ -117,8 +175,10 @@ namespace Flex.Infrastructures.Messaging.RabbitMQ
             };
         }
 
-        public Task StopAsync(CancellationToken cancellationToken)
+        public async Task StopAsync(CancellationToken cancellationToken)
         {
+            _subscriptionCts?.Cancel();
+
             if (_channel != null && _consumerTag != null)
             {
                 try
@@ -141,13 +201,25 @@ namespace Flex.Infrastructures.Messaging.RabbitMQ
                 _logger.LogWarning("StopAsync cancelled while waiting inflight messages");
             }
 
-            return Task.CompletedTask;
+            if (_subscriptionTask != null)
+            {
+                try
+                {
+                    await _subscriptionTask.WaitAsync(cancellationToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    _logger.LogWarning("StopAsync cancelled while waiting RabbitMQ consumer subscription task");
+                }
+            }
         }
 
         public void Dispose()
         {
             if (_disposed) return;
             _disposed = true;
+
+            _subscriptionCts?.Cancel();
 
             try
             {
@@ -190,6 +262,56 @@ namespace Flex.Infrastructures.Messaging.RabbitMQ
             catch (Exception ex)
             {
                 _logger?.LogWarning(ex, "Error disposing connection");
+            }
+
+            _subscriptionCts?.Dispose();
+        }
+
+        private void CleanupConnection()
+        {
+            try
+            {
+                if (_channel != null)
+                {
+                    _channel.ModelShutdown -= OnModelShutdown;
+
+                    if (_channel.IsOpen)
+                        _channel.Close();
+
+                    _channel.Dispose();
+                    _channel = null;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Error cleaning up RabbitMQ consumer channel");
+            }
+
+            try
+            {
+                if (_connection != null)
+                {
+                    _connection.ConnectionShutdown -= OnConnectionShutdown;
+                    _connection.ConnectionBlocked -= OnConnectionBlocked;
+                    _connection.ConnectionUnblocked -= OnConnectionUnblocked;
+
+                    if (_connection is IAutorecoveringConnection autorecoveringConnection)
+                    {
+                        autorecoveringConnection.RecoverySucceeded -= OnRecoverySucceeded;
+                        autorecoveringConnection.ConnectionRecoveryError -= OnConnectionRecoveryError;
+                        autorecoveringConnection.RecoveringConsumer -= OnRecoveringConsumer;
+                    }
+
+                    if (_connection.IsOpen)
+                        _connection.Close();
+
+                    _connection.Dispose();
+                    _connection = null;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Error cleaning up RabbitMQ consumer connection");
             }
         }
 
