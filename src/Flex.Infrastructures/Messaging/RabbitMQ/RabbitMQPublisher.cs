@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
 
 namespace Flex.Infrastructures.Messaging.RabbitMQ
 {
@@ -33,6 +34,21 @@ namespace Flex.Infrastructures.Messaging.RabbitMQ
             };
 
             _connection = factory.CreateConnection();
+
+            _logger.LogInformation(
+                "Connected to RabbitMQ server {HostName}:{Port}, virtual host '{VirtualHost}', exchange '{ExchangeName}'",
+                cfg.HostName,
+                cfg.Port,
+                cfg.VirtualHost,
+                cfg.ExchangeName);
+
+            _connection.ConnectionShutdown += OnConnectionShutdown;
+
+            if (_connection is IAutorecoveringConnection autorecoveringConnection)
+            {
+                autorecoveringConnection.RecoverySucceeded += OnRecoverySucceeded;
+                autorecoveringConnection.ConnectionRecoveryError += OnConnectionRecoveryError;
+            }
         }
 
         public Task PublishAsync(string exchange, string routingKey, byte[] body, IDictionary<string, object>? headers = null, CancellationToken ct = default)
@@ -62,7 +78,40 @@ namespace Flex.Infrastructures.Messaging.RabbitMQ
 
         public void Dispose()
         {
+            _connection.ConnectionShutdown -= OnConnectionShutdown;
+
+            if (_connection is IAutorecoveringConnection autorecoveringConnection)
+            {
+                autorecoveringConnection.RecoverySucceeded -= OnRecoverySucceeded;
+                autorecoveringConnection.ConnectionRecoveryError -= OnConnectionRecoveryError;
+            }
+
             _connection.Dispose();
+        }
+
+        private void OnConnectionShutdown(object? sender, ShutdownEventArgs args)
+        {
+            _logger.LogWarning(
+                "RabbitMQ connection shut down. ReplyCode={ReplyCode}, ReplyText={ReplyText}",
+                args.ReplyCode,
+                args.ReplyText);
+        }
+
+        private void OnRecoverySucceeded(object? sender, EventArgs args)
+        {
+            _logger.LogInformation(
+                "RabbitMQ connection recovered for server {HostName}:{Port}",
+                _options.HostName,
+                _options.Port);
+        }
+
+        private void OnConnectionRecoveryError(object? sender, ConnectionRecoveryErrorEventArgs args)
+        {
+            _logger.LogWarning(
+                args.Exception,
+                "RabbitMQ connection recovery failed for server {HostName}:{Port}",
+                _options.HostName,
+                _options.Port);
         }
     }
 }
