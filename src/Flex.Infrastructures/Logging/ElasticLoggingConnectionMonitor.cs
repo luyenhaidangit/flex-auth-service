@@ -29,7 +29,13 @@ namespace Flex.Infrastructures.Logging
                 return;
             }
 
-            var endpoint = GetPrimaryEndpoint(_options.NodeUris);
+            if (!TryGetPrimaryEndpoint(_options.NodeUris, out var endpoint) || endpoint == null)
+            {
+                _logger.LogWarning(
+                    "Elasticsearch logging monitor disabled because endpoint configuration is invalid. Endpoint={Endpoint}",
+                    _options.NodeUris);
+                return;
+            }
 
             while (!stoppingToken.IsCancellationRequested)
             {
@@ -131,14 +137,16 @@ namespace Flex.Infrastructures.Logging
             _connected = false;
         }
 
-        private static Uri GetPrimaryEndpoint(string nodeUris)
+        private static bool TryGetPrimaryEndpoint(string nodeUris, out Uri? endpoint)
         {
+            endpoint = null;
+
             var value = nodeUris
                 .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                .FirstOrDefault()
-                ?? nodeUris;
+                .FirstOrDefault();
 
-            return new Uri(value);
+            return !string.IsNullOrWhiteSpace(value)
+                && Uri.TryCreate(value, UriKind.Absolute, out endpoint);
         }
     }
 }

@@ -25,6 +25,7 @@ namespace Flex.Infrastructures.Logging
             var username = elasticOptions.Username;
             var password = elasticOptions.Password;
             var elasticIndexFormat = $"{elasticOptions.IndexPrefix}-{applicationName}-{environmentName}-{DateTime.UtcNow:yyyy.MM.dd}";
+            var elasticEndpointIsValid = TryGetPrimaryEndpoint(elasticUri, out var elasticEndpoint);
 
             // Create logger configuration
             var loggerConfig = new LoggerConfiguration()
@@ -48,9 +49,9 @@ namespace Flex.Infrastructures.Logging
                 }, bufferSize: 5000)
                 .WriteTo.Async(a =>
                 {
-                    if (elasticOptions.Enabled && !string.IsNullOrWhiteSpace(elasticUri))
+                    if (elasticOptions.Enabled && elasticEndpointIsValid && elasticEndpoint != null)
                     {
-                        a.OpenSearch(new OpenSearchSinkOptions(new Uri(elasticUri))
+                        a.OpenSearch(new OpenSearchSinkOptions(elasticEndpoint)
                         {
                             IndexFormat = elasticIndexFormat,
                             AutoRegisterTemplate = false,
@@ -63,8 +64,27 @@ namespace Flex.Infrastructures.Logging
             // Create logger
             Log.Logger = loggerConfig.CreateLogger();
 
+            if (elasticOptions.Enabled && !string.IsNullOrWhiteSpace(elasticUri) && !elasticEndpointIsValid)
+            {
+                Log.Warning(
+                    "Elasticsearch logging sink disabled because endpoint configuration is invalid. Endpoint={Endpoint}",
+                    elasticUri);
+            }
+
             // Use Serilog
             host.UseSerilog();
+        }
+
+        private static bool TryGetPrimaryEndpoint(string nodeUris, out Uri? endpoint)
+        {
+            endpoint = null;
+
+            var value = nodeUris
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .FirstOrDefault();
+
+            return !string.IsNullOrWhiteSpace(value)
+                && Uri.TryCreate(value, UriKind.Absolute, out endpoint);
         }
     }
 }
