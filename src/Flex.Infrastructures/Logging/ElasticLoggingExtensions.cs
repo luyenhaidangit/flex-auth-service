@@ -23,7 +23,7 @@ namespace Flex.Infrastructures.Logging
             services.AddHttpClient(HttpClientName, client =>
             {
                 client.Timeout = TimeSpan.FromSeconds(Math.Max(1, options.HealthCheckTimeoutSeconds));
-            });
+            }).RemoveAllLoggers();
 
             services.AddHostedService<ElasticLoggingConnectionMonitor>();
 

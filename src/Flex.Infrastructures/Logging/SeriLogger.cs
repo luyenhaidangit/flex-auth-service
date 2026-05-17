@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.Configuration;
 using Serilog;
 using Serilog.Sinks.OpenSearch;
 
@@ -63,18 +62,6 @@ namespace Flex.Infrastructures.Logging
 
             // Create logger
             Log.Logger = loggerConfig.CreateLogger();
-
-            if (elasticOptions.Enabled && !string.IsNullOrWhiteSpace(elasticUri))
-            {
-                Log.Information(
-                    "Elasticsearch logging sink initialized. Endpoint={Endpoint}, IndexFormat={IndexFormat}",
-                    elasticUri,
-                    elasticIndexFormat);
-            }
-            else
-            {
-                Log.Information("Elasticsearch logging sink is disabled");
-            }
 
             // Use Serilog
             host.UseSerilog();
