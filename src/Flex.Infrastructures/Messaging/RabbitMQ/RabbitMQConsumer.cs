@@ -17,6 +17,7 @@ namespace Flex.Infrastructures.Messaging.RabbitMQ
         private readonly ILogger<RabbitMQConsumer> _logger;
         private IModel? _channel;
         private string? _consumerTag;
+        private string? _queueName;
         private bool _disposed;
         private readonly CountdownEvent _inflight = new CountdownEvent(0);
 
@@ -42,16 +43,39 @@ namespace Flex.Infrastructures.Messaging.RabbitMQ
             };
 
             _connection = factory.CreateConnection();
+
+            _logger.LogInformation(
+                "Connected RabbitMQ consumer to server {HostName}:{Port}, virtual host '{VirtualHost}', exchange '{ExchangeName}'",
+                _options.HostName,
+                _options.Port,
+                _options.VirtualHost,
+                _options.ExchangeName);
+
+            _connection.ConnectionShutdown += OnConnectionShutdown;
+            _connection.ConnectionBlocked += OnConnectionBlocked;
+            _connection.ConnectionUnblocked += OnConnectionUnblocked;
+
+            if (_connection is IAutorecoveringConnection autorecoveringConnection)
+            {
+                autorecoveringConnection.RecoverySucceeded += OnRecoverySucceeded;
+                autorecoveringConnection.ConnectionRecoveryError += OnConnectionRecoveryError;
+                autorecoveringConnection.RecoveringConsumer += OnRecoveringConsumer;
+            }
         }
 
         public void Subscribe(string queueName, Func<byte[], CancellationToken, Task<ConsumeResult>> handler, CancellationToken cancellationToken)
         {
+            _queueName = queueName;
             _channel = _connection.CreateModel();
+            _channel.ModelShutdown += OnModelShutdown;
             _channel.BasicQos(prefetchSize: 0, prefetchCount: (ushort)_options.PrefetchCount, global: false);
 
             var consumer = new AsyncEventingBasicConsumer(_channel);
             _consumerTag = _channel.BasicConsume(queue: queueName, autoAck: false,consumer: consumer);
-            _logger.LogInformation("Started consuming from queue {Queue} with tag {ConsumerTag}", queueName, _consumerTag);
+            _logger.LogInformation(
+                "Started consuming from RabbitMQ queue {Queue} with tag {ConsumerTag}",
+                queueName,
+                _consumerTag);
 
             consumer.Received += async (model, ea) =>
             {
@@ -129,6 +153,8 @@ namespace Flex.Infrastructures.Messaging.RabbitMQ
             {
                 if (_channel != null)
                 {
+                    _channel.ModelShutdown -= OnModelShutdown;
+
                     if (_channel.IsOpen)
                         _channel.Close();
 
@@ -144,6 +170,17 @@ namespace Flex.Infrastructures.Messaging.RabbitMQ
             {
                 if (_connection != null)
                 {
+                    _connection.ConnectionShutdown -= OnConnectionShutdown;
+                    _connection.ConnectionBlocked -= OnConnectionBlocked;
+                    _connection.ConnectionUnblocked -= OnConnectionUnblocked;
+
+                    if (_connection is IAutorecoveringConnection autorecoveringConnection)
+                    {
+                        autorecoveringConnection.RecoverySucceeded -= OnRecoverySucceeded;
+                        autorecoveringConnection.ConnectionRecoveryError -= OnConnectionRecoveryError;
+                        autorecoveringConnection.RecoveringConsumer -= OnRecoveringConsumer;
+                    }
+
                     if (_connection.IsOpen)
                         _connection.Close();
 
@@ -154,6 +191,65 @@ namespace Flex.Infrastructures.Messaging.RabbitMQ
             {
                 _logger?.LogWarning(ex, "Error disposing connection");
             }
+        }
+
+        private void OnConnectionShutdown(object? sender, ShutdownEventArgs args)
+        {
+            _logger.LogWarning(
+                "RabbitMQ consumer connection shut down for queue {Queue}. ReplyCode={ReplyCode}, ReplyText={ReplyText}",
+                _queueName,
+                args.ReplyCode,
+                args.ReplyText);
+        }
+
+        private void OnModelShutdown(object? sender, ShutdownEventArgs args)
+        {
+            _logger.LogWarning(
+                "RabbitMQ consumer channel shut down for queue {Queue}. ReplyCode={ReplyCode}, ReplyText={ReplyText}",
+                _queueName,
+                args.ReplyCode,
+                args.ReplyText);
+        }
+
+        private void OnConnectionBlocked(object? sender, ConnectionBlockedEventArgs args)
+        {
+            _logger.LogWarning(
+                "RabbitMQ consumer connection blocked for queue {Queue}. Reason={Reason}",
+                _queueName,
+                args.Reason);
+        }
+
+        private void OnConnectionUnblocked(object? sender, EventArgs args)
+        {
+            _logger.LogInformation(
+                "RabbitMQ consumer connection unblocked for queue {Queue}",
+                _queueName);
+        }
+
+        private void OnRecoverySucceeded(object? sender, EventArgs args)
+        {
+            _logger.LogInformation(
+                "RabbitMQ consumer connection recovered for queue {Queue} on server {HostName}:{Port}",
+                _queueName,
+                _options.HostName,
+                _options.Port);
+        }
+
+        private void OnConnectionRecoveryError(object? sender, ConnectionRecoveryErrorEventArgs args)
+        {
+            _logger.LogWarning(
+                args.Exception,
+                "RabbitMQ consumer connection recovery failed for queue {Queue} on server {HostName}:{Port}",
+                _queueName,
+                _options.HostName,
+                _options.Port);
+        }
+
+        private void OnRecoveringConsumer(object? sender, RecoveringConsumerEventArgs args)
+        {
+            _logger.LogInformation(
+                "RabbitMQ consumer is recovering subscription for queue {Queue}",
+                _queueName);
         }
     }
 }
