@@ -7,5 +7,7 @@
         public string Username { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;
         public string IndexPrefix { get; set; } = "flex-logs";
+        public int HealthCheckIntervalSeconds { get; set; } = 60;
+        public int HealthCheckTimeoutSeconds { get; set; } = 5;
     }
 }

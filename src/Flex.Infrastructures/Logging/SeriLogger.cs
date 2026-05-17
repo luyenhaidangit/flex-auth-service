@@ -20,13 +20,12 @@ namespace Flex.Infrastructures.Logging
             var environmentName = env.EnvironmentName ?? "Development";
 
             // Bind Elastic logging options from configuration
-            var elasticOptions = configuration.GetSection("Logging:Elastic")
-                .Get<ElasticLoggingOptions>()
-                ?? new ElasticLoggingOptions();
+            var elasticOptions = ElasticLoggingOptionsResolver.Resolve(configuration);
 
             var elasticUri = elasticOptions.NodeUris;
             var username = elasticOptions.Username;
             var password = elasticOptions.Password;
+            var elasticIndexFormat = $"{elasticOptions.IndexPrefix}-{applicationName}-{environmentName}-{DateTime.UtcNow:yyyy.MM.dd}";
 
             // Create logger configuration
             var loggerConfig = new LoggerConfiguration()
@@ -54,7 +53,7 @@ namespace Flex.Infrastructures.Logging
                     {
                         a.OpenSearch(new OpenSearchSinkOptions(new Uri(elasticUri))
                         {
-                            IndexFormat = $"{elasticOptions.IndexPrefix}-{applicationName}-{environmentName}-{DateTime.UtcNow:yyyy.MM.dd}",
+                            IndexFormat = elasticIndexFormat,
                             AutoRegisterTemplate = false,
                             ModifyConnectionSettings = c => c.BasicAuthentication(username, password),
                             EmitEventFailure = EmitEventFailureHandling.WriteToSelfLog
@@ -64,6 +63,18 @@ namespace Flex.Infrastructures.Logging
 
             // Create logger
             Log.Logger = loggerConfig.CreateLogger();
+
+            if (elasticOptions.Enabled && !string.IsNullOrWhiteSpace(elasticUri))
+            {
+                Log.Information(
+                    "Elasticsearch logging sink initialized. Endpoint={Endpoint}, IndexFormat={IndexFormat}",
+                    elasticUri,
+                    elasticIndexFormat);
+            }
+            else
+            {
+                Log.Information("Elasticsearch logging sink is disabled");
+            }
 
             // Use Serilog
             host.UseSerilog();
