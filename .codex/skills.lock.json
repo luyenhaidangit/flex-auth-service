@@ -1,0 +1,8 @@
+{
+  "registry": "flex-skills",
+  "updatePolicy": "notify",
+  "profile": "custom",
+  "skills": {
+    "code-changelog": "1.0.0"
+  }
+}

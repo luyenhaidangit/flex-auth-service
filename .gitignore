@@ -457,3 +457,6 @@ secrets/oracle-wallet/*
 .env
 
 docs/Auth.md
+
+# Codex synced skills are generated from flex-skills registry.
+.codex/skills/
