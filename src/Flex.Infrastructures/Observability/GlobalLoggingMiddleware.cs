@@ -46,23 +46,21 @@ public class GlobalLoggingMiddleware
         }
 
         var stopwatch = Stopwatch.StartNew();
-        var logEntry = new LogEntry
+        var logContext = new HttpLogContext
         {
-            Service = _options.ServiceName,
             Method = context.Request.Method,
-            Path = context.Request.Path,
-            Timestamp = DateTime.UtcNow
+            Path = context.Request.Path
         };
 
         // Extract user context
-        ExtractUserContext(context, logEntry);
+        ExtractUserContext(context, logContext);
 
         // Capture request body if whitelisted
         string? requestBody = null;
         if (ShouldLogBody(context.Request.Path))
         {
             requestBody = await CaptureRequestBody(context);
-            logEntry.RequestBody = requestBody;
+            logContext.RequestBody = requestBody;
         }
 
         // Replace response body stream to capture it
@@ -76,28 +74,27 @@ public class GlobalLoggingMiddleware
             await _next(context);
 
             stopwatch.Stop();
-            logEntry.StatusCode = context.Response.StatusCode;
-            logEntry.DurationMs = stopwatch.ElapsedMilliseconds;
+            logContext.StatusCode = context.Response.StatusCode;
+            logContext.DurationMs = stopwatch.ElapsedMilliseconds;
 
             // Capture response body if whitelisted
             if (ShouldLogBody(context.Request.Path))
             {
-                logEntry.ResponseBody = await CaptureResponseBody(responseBodyStream);
+                logContext.ResponseBody = await CaptureResponseBody(responseBodyStream);
             }
 
             // Log based on status code
-            LogRequest(context, logEntry);
+            LogRequest(context, logContext);
         }
         catch (Exception ex)
         {
             stopwatch.Stop();
-            logEntry.StatusCode = context.Response.StatusCode != 200 
+            logContext.StatusCode = context.Response.StatusCode != 200 
                 ? context.Response.StatusCode 
                 : StatusCodes.Status500InternalServerError;
-            logEntry.DurationMs = stopwatch.ElapsedMilliseconds;
-            logEntry.Exception = $"{ex.GetType().Name}: {ex.Message}";
+            logContext.DurationMs = stopwatch.ElapsedMilliseconds;
 
-            using (PushLogProperties(context, logEntry, ex))
+            using (PushEcsHttpProperties(context, logContext, ex))
             {
                 _logger.LogError(ex, "Request failed");
             }
@@ -138,35 +135,35 @@ public class GlobalLoggingMiddleware
         });
     }
 
-    private void ExtractUserContext(HttpContext context, LogEntry logEntry)
+    private void ExtractUserContext(HttpContext context, HttpLogContext logContext)
     {
         // Extract UserId
         if (context.Request.Headers.TryGetValue(HeaderNames.UserId, out var userId))
         {
-            logEntry.UserId = userId.ToString();
+            logContext.UserId = userId.ToString();
         }
         else if (context.User?.Identity?.IsAuthenticated == true)
         {
-            logEntry.UserId = context.User.Identity.Name ?? context.User.FindFirst("sub")?.Value;
+            logContext.UserId = context.User.Identity.Name ?? context.User.FindFirst("sub")?.Value;
         }
 
         // Extract ClientId
         if (context.Request.Headers.TryGetValue(HeaderNames.ClientId, out var clientId))
         {
-            logEntry.ClientId = clientId.ToString();
+            logContext.ClientId = clientId.ToString();
         }
 
         // Extract IP Address
         if (_options.EnableIpAddressLogging)
         {
-            logEntry.IpAddress = context.Connection.RemoteIpAddress?.ToString();
+            logContext.IpAddress = context.Connection.RemoteIpAddress?.ToString();
         }
 
         // Extract User-Agent (truncated)
         if (_options.EnableUserAgentLogging && context.Request.Headers.TryGetValue("User-Agent", out var userAgent))
         {
             var ua = userAgent.ToString();
-            logEntry.UserAgent = ua.Length > _options.MaxUserAgentLength 
+            logContext.UserAgent = ua.Length > _options.MaxUserAgentLength 
                 ? ua.Substring(0, _options.MaxUserAgentLength) + "..." 
                 : ua;
         }
@@ -233,14 +230,14 @@ public class GlobalLoggingMiddleware
         }
     }
 
-    private void LogRequest(HttpContext context, LogEntry logEntry)
+    private void LogRequest(HttpContext context, HttpLogContext logContext)
     {
-        var logLevel = DetermineLogLevel(logEntry.StatusCode);
+        var logLevel = DetermineLogLevel(logContext.StatusCode);
 
         // Create structured log message
-        var message = $"{logEntry.Method} {logEntry.Path} responded {logEntry.StatusCode} in {logEntry.DurationMs}ms";
+        var message = $"{logContext.Method} {logContext.Path} responded {logContext.StatusCode} in {logContext.DurationMs}ms";
 
-        using (PushLogProperties(context, logEntry))
+        using (PushEcsHttpProperties(context, logContext))
         {
             _logger.Log(logLevel, message);
         }
@@ -256,35 +253,50 @@ public class GlobalLoggingMiddleware
         };
     }
 
-    private static IDisposable PushLogProperties(HttpContext context, LogEntry logEntry, Exception? exception = null)
+    private static IDisposable PushEcsHttpProperties(HttpContext context, HttpLogContext logContext, Exception? exception = null)
     {
         var activity = Activity.Current;
-        var statusCode = logEntry.StatusCode;
-        var userId = logEntry.UserId;
+        var statusCode = logContext.StatusCode;
 
         var properties = new List<IDisposable>
         {
-            LogContext.PushProperty("event.action", $"{logEntry.Method} {logEntry.Path}"),
+            LogContext.PushProperty("event.action", $"{logContext.Method} {logContext.Path}"),
             LogContext.PushProperty("event.outcome", statusCode >= 400 ? "failure" : "success"),
-            LogContext.PushProperty("http.request.method", logEntry.Method),
-            LogContext.PushProperty("url.path", logEntry.Path),
+            LogContext.PushProperty("http.request.method", logContext.Method),
+            LogContext.PushProperty("url.path", logContext.Path),
             LogContext.PushProperty("http.response.status_code", statusCode),
-            LogContext.PushProperty("event.duration", logEntry.DurationMs * 1_000_000),
-            LogContext.PushProperty("user.id", userId),
-            LogContext.PushProperty("client.ip", logEntry.IpAddress),
-            LogContext.PushProperty("user_agent.original", logEntry.UserAgent),
-            LogContext.PushProperty("labels.client_id", logEntry.ClientId),
-            LogContext.PushProperty("transaction.id", context.TraceIdentifier)
+            LogContext.PushProperty("event.duration", logContext.DurationMs * 1_000_000),
+            LogContext.PushProperty("labels.request_id", context.TraceIdentifier)
         };
 
-        if (!string.IsNullOrWhiteSpace(logEntry.RequestBody))
+        if (!string.IsNullOrWhiteSpace(logContext.UserId))
         {
-            properties.Add(LogContext.PushProperty("http.request.body.content", logEntry.RequestBody));
+            properties.Add(LogContext.PushProperty("user.id", logContext.UserId));
         }
 
-        if (!string.IsNullOrWhiteSpace(logEntry.ResponseBody))
+        if (!string.IsNullOrWhiteSpace(logContext.IpAddress))
         {
-            properties.Add(LogContext.PushProperty("http.response.body.content", logEntry.ResponseBody));
+            properties.Add(LogContext.PushProperty("client.ip", logContext.IpAddress));
+        }
+
+        if (!string.IsNullOrWhiteSpace(logContext.UserAgent))
+        {
+            properties.Add(LogContext.PushProperty("user_agent.original", logContext.UserAgent));
+        }
+
+        if (!string.IsNullOrWhiteSpace(logContext.ClientId))
+        {
+            properties.Add(LogContext.PushProperty("labels.client_id", logContext.ClientId));
+        }
+
+        if (!string.IsNullOrWhiteSpace(logContext.RequestBody))
+        {
+            properties.Add(LogContext.PushProperty("http.request.body.content", logContext.RequestBody));
+        }
+
+        if (!string.IsNullOrWhiteSpace(logContext.ResponseBody))
+        {
+            properties.Add(LogContext.PushProperty("http.response.body.content", logContext.ResponseBody));
         }
 
         if (activity != null)

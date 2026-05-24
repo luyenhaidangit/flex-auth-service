@@ -15,7 +15,7 @@ public class CorrelationIdMiddleware
     private const string CorrelationIdPropertyName = "CorrelationId";
     private const string LabelsCorrelationIdPropertyName = "labels.correlation_id";
     private const string TraceIdPropertyName = "trace.id";
-    private const string TransactionIdPropertyName = "transaction.id";
+    private const string RequestIdPropertyName = "labels.request_id";
     private const string SpanIdPropertyName = "span.id";
 
     public CorrelationIdMiddleware(RequestDelegate next)
@@ -46,7 +46,7 @@ public class CorrelationIdMiddleware
         using (LogContext.PushProperty(CorrelationIdPropertyName, correlationId))
         using (LogContext.PushProperty(LabelsCorrelationIdPropertyName, correlationId))
         using (LogContext.PushProperty(TraceIdPropertyName, traceId))
-        using (LogContext.PushProperty(TransactionIdPropertyName, context.TraceIdentifier))
+        using (LogContext.PushProperty(RequestIdPropertyName, context.TraceIdentifier))
         using (LogContext.PushProperty(SpanIdPropertyName, spanId))
         {
             await _next(context);
