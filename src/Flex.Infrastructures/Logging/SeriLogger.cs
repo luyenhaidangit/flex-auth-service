@@ -24,9 +24,7 @@ namespace Flex.Infrastructures.Logging
             var elasticUri = elasticOptions.NodeUris;
             var username = elasticOptions.Username;
             var password = elasticOptions.Password;
-            var serviceName = string.IsNullOrWhiteSpace(elasticOptions.ServiceName)
-                ? applicationName
-                : elasticOptions.ServiceName.Trim().ToLowerInvariant();
+            var serviceName = string.IsNullOrWhiteSpace(elasticOptions.ServiceName) ? applicationName : elasticOptions.ServiceName.Trim().ToLowerInvariant();
             var elasticIndexFormat = $"{elasticOptions.IndexPrefix}-{serviceName}-{{0:yyyy.MM.dd}}";
             var elasticEndpointIsValid = TryGetPrimaryEndpoint(elasticUri, out var elasticEndpoint);
 
@@ -34,9 +32,11 @@ namespace Flex.Infrastructures.Logging
             var loggerConfig = new LoggerConfiguration()
                 .ReadFrom.Configuration(configuration)
                 .Enrich.FromLogContext()
+                .Enrich.With(new EcsLogEventEnricher())
                 .Enrich.WithMachineName()
-                .Enrich.WithProperty("Environment", environmentName)
-                .Enrich.WithProperty("Application", applicationName)
+                .Enrich.WithProperty("service.name", serviceName)
+                .Enrich.WithProperty("service.environment", environmentName)
+                .Enrich.WithProperty("host.name", Environment.MachineName)
                 .WriteTo.Async(a =>
                 {
                     a.Console(outputTemplate: OutputTemplate);

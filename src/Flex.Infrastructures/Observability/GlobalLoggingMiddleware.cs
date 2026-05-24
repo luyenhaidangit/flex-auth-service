@@ -2,6 +2,7 @@ using Flex.Infrastructures.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Serilog.Context;
 using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
@@ -85,7 +86,7 @@ public class GlobalLoggingMiddleware
             }
 
             // Log based on status code
-            LogRequest(logEntry);
+            LogRequest(context, logEntry);
         }
         catch (Exception ex)
         {
@@ -96,7 +97,11 @@ public class GlobalLoggingMiddleware
             logEntry.DurationMs = stopwatch.ElapsedMilliseconds;
             logEntry.Exception = $"{ex.GetType().Name}: {ex.Message}";
 
-            _logger.LogError(ex, "Request failed: {@LogEntry}", logEntry);
+            using (PushEcsProperties(context, logEntry, ex))
+            {
+                _logger.LogError(ex, "Request failed: {@LogEntry}", logEntry);
+            }
+
             throw;
         }
         finally
@@ -228,14 +233,17 @@ public class GlobalLoggingMiddleware
         }
     }
 
-    private void LogRequest(LogEntry logEntry)
+    private void LogRequest(HttpContext context, LogEntry logEntry)
     {
         var logLevel = DetermineLogLevel(logEntry.StatusCode);
 
         // Create structured log message
         var message = $"{logEntry.Method} {logEntry.Path} responded {logEntry.StatusCode} in {logEntry.DurationMs}ms";
 
-        _logger.Log(logLevel, message + " {@LogEntry}", logEntry);
+        using (PushEcsProperties(context, logEntry))
+        {
+            _logger.Log(logLevel, message + " {@LogEntry}", logEntry);
+        }
     }
 
     private LogLevel DetermineLogLevel(int statusCode)
@@ -247,5 +255,37 @@ public class GlobalLoggingMiddleware
             _ => _options.SuccessLogLevel
         };
     }
-}
 
+    private static IDisposable PushEcsProperties(HttpContext context, LogEntry logEntry, Exception? exception = null)
+    {
+        var activity = Activity.Current;
+        var statusCode = logEntry.StatusCode;
+        var userId = logEntry.UserId;
+
+        var properties = new List<IDisposable>
+        {
+            LogContext.PushProperty("event.action", $"{logEntry.Method} {logEntry.Path}"),
+            LogContext.PushProperty("event.outcome", statusCode >= 400 ? "failure" : "success"),
+            LogContext.PushProperty("http.request.method", logEntry.Method),
+            LogContext.PushProperty("url.path", logEntry.Path),
+            LogContext.PushProperty("http.response.status_code", statusCode),
+            LogContext.PushProperty("user.id", userId),
+            LogContext.PushProperty("transaction.id", context.TraceIdentifier)
+        };
+
+        if (activity != null)
+        {
+            properties.Add(LogContext.PushProperty("trace.id", activity.TraceId.ToString()));
+            properties.Add(LogContext.PushProperty("span.id", activity.SpanId.ToString()));
+        }
+
+        if (exception != null)
+        {
+            properties.Add(LogContext.PushProperty("error.type", exception.GetType().Name));
+            properties.Add(LogContext.PushProperty("error.message", exception.Message));
+            properties.Add(LogContext.PushProperty("error.stack_trace", exception.ToString()));
+        }
+
+        return new CompositeDisposable(properties);
+    }
+}

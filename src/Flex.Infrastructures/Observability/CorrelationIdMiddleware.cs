@@ -13,6 +13,10 @@ public class CorrelationIdMiddleware
 {
     private readonly RequestDelegate _next;
     private const string CorrelationIdPropertyName = "CorrelationId";
+    private const string LabelsCorrelationIdPropertyName = "labels.correlation_id";
+    private const string TraceIdPropertyName = "trace.id";
+    private const string TransactionIdPropertyName = "transaction.id";
+    private const string SpanIdPropertyName = "span.id";
 
     public CorrelationIdMiddleware(RequestDelegate next)
     {
@@ -34,8 +38,16 @@ public class CorrelationIdMiddleware
             return Task.CompletedTask;
         });
 
-        // Push to Serilog LogContext - automatic enrichment for ALL logs
+        var activity = Activity.Current;
+        var traceId = activity?.TraceId.ToString() ?? correlationId;
+        var spanId = activity?.SpanId.ToString();
+
+        // Push both legacy and ECS-compatible properties for all logs in the request.
         using (LogContext.PushProperty(CorrelationIdPropertyName, correlationId))
+        using (LogContext.PushProperty(LabelsCorrelationIdPropertyName, correlationId))
+        using (LogContext.PushProperty(TraceIdPropertyName, traceId))
+        using (LogContext.PushProperty(TransactionIdPropertyName, context.TraceIdentifier))
+        using (LogContext.PushProperty(SpanIdPropertyName, spanId))
         {
             await _next(context);
         }
