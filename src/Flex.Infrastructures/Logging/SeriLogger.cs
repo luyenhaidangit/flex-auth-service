@@ -24,7 +24,10 @@ namespace Flex.Infrastructures.Logging
             var elasticUri = elasticOptions.NodeUris;
             var username = elasticOptions.Username;
             var password = elasticOptions.Password;
-            var elasticIndexFormat = $"{elasticOptions.IndexPrefix}-{applicationName}-{environmentName}-{DateTime.UtcNow:yyyy.MM.dd}";
+            var serviceName = string.IsNullOrWhiteSpace(elasticOptions.ServiceName)
+                ? applicationName
+                : elasticOptions.ServiceName.Trim().ToLowerInvariant();
+            var elasticIndexFormat = $"{elasticOptions.IndexPrefix}-{serviceName}-{{0:yyyy.MM.dd}}";
             var elasticEndpointIsValid = TryGetPrimaryEndpoint(elasticUri, out var elasticEndpoint);
 
             // Create logger configuration
