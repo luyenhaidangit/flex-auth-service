@@ -97,9 +97,9 @@ public class GlobalLoggingMiddleware
             logEntry.DurationMs = stopwatch.ElapsedMilliseconds;
             logEntry.Exception = $"{ex.GetType().Name}: {ex.Message}";
 
-            using (PushEcsProperties(context, logEntry, ex))
+            using (PushLogProperties(context, logEntry, ex))
             {
-                _logger.LogError(ex, "Request failed: {@LogEntry}", logEntry);
+                _logger.LogError(ex, "Request failed");
             }
 
             throw;
@@ -240,9 +240,9 @@ public class GlobalLoggingMiddleware
         // Create structured log message
         var message = $"{logEntry.Method} {logEntry.Path} responded {logEntry.StatusCode} in {logEntry.DurationMs}ms";
 
-        using (PushEcsProperties(context, logEntry))
+        using (PushLogProperties(context, logEntry))
         {
-            _logger.Log(logLevel, message + " {@LogEntry}", logEntry);
+            _logger.Log(logLevel, message);
         }
     }
 
@@ -256,7 +256,7 @@ public class GlobalLoggingMiddleware
         };
     }
 
-    private static IDisposable PushEcsProperties(HttpContext context, LogEntry logEntry, Exception? exception = null)
+    private static IDisposable PushLogProperties(HttpContext context, LogEntry logEntry, Exception? exception = null)
     {
         var activity = Activity.Current;
         var statusCode = logEntry.StatusCode;
@@ -269,9 +269,23 @@ public class GlobalLoggingMiddleware
             LogContext.PushProperty("http.request.method", logEntry.Method),
             LogContext.PushProperty("url.path", logEntry.Path),
             LogContext.PushProperty("http.response.status_code", statusCode),
+            LogContext.PushProperty("event.duration", logEntry.DurationMs * 1_000_000),
             LogContext.PushProperty("user.id", userId),
+            LogContext.PushProperty("client.ip", logEntry.IpAddress),
+            LogContext.PushProperty("user_agent.original", logEntry.UserAgent),
+            LogContext.PushProperty("labels.client_id", logEntry.ClientId),
             LogContext.PushProperty("transaction.id", context.TraceIdentifier)
         };
+
+        if (!string.IsNullOrWhiteSpace(logEntry.RequestBody))
+        {
+            properties.Add(LogContext.PushProperty("http.request.body.content", logEntry.RequestBody));
+        }
+
+        if (!string.IsNullOrWhiteSpace(logEntry.ResponseBody))
+        {
+            properties.Add(LogContext.PushProperty("http.response.body.content", logEntry.ResponseBody));
+        }
 
         if (activity != null)
         {

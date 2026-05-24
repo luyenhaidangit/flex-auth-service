@@ -33,7 +33,6 @@ namespace Flex.Infrastructures.Logging
                 .ReadFrom.Configuration(configuration)
                 .Enrich.FromLogContext()
                 .Enrich.With(new EcsLogEventEnricher())
-                .Enrich.WithMachineName()
                 .Enrich.WithProperty("service.name", serviceName)
                 .Enrich.WithProperty("service.environment", environmentName)
                 .Enrich.WithProperty("host.name", Environment.MachineName)
