@@ -17,7 +17,9 @@ namespace Flex.Infrastructures.Logging
 
             // Read application name and environment name
             var applicationName = env.ApplicationName?.ToLowerInvariant().Replace('.', '-') ?? "unknown-application";
-            var environmentName = env.EnvironmentName ?? "Development";
+            var environmentName = string.IsNullOrWhiteSpace(env.EnvironmentName)
+                ? "development"
+                : env.EnvironmentName.Trim().ToLowerInvariant();
 
             // Bind Elastic logging options from configuration
             var elasticOptions = ElasticLoggingOptionsResolver.Resolve(configuration);
