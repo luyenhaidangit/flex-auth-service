@@ -57,6 +57,7 @@ namespace Flex.Infrastructures.Logging
                         a.OpenSearch(new OpenSearchSinkOptions(elasticEndpoint)
                         {
                             IndexFormat = elasticIndexFormat,
+                            InlineFields = true,
                             AutoRegisterTemplate = false,
                             ModifyConnectionSettings = c => c.BasicAuthentication(username, password),
                             EmitEventFailure = EmitEventFailureHandling.WriteToSelfLog
