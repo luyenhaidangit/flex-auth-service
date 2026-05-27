@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Builder;
+using Flex.Infrastructures.Observability;
 using Serilog;
 using Serilog.Sinks.OpenSearch;
 
@@ -33,9 +34,9 @@ namespace Flex.Infrastructures.Logging
                 .ReadFrom.Configuration(configuration)
                 .Enrich.FromLogContext()
                 .Enrich.With(new EcsLogEventEnricher())
-                .Enrich.WithProperty("service.name", serviceName)
-                .Enrich.WithProperty("service.environment", environmentName)
-                .Enrich.WithProperty("host.name", Environment.MachineName)
+                .Enrich.WithProperty(LogFields.ServiceName, serviceName)
+                .Enrich.WithProperty(LogFields.ServiceEnvironment, environmentName)
+                .Enrich.WithProperty(LogFields.HostName, Environment.MachineName)
                 .WriteTo.Async(a =>
                 {
                     a.Console(outputTemplate: OutputTemplate);

@@ -1,3 +1,4 @@
+using Flex.Infrastructures.Observability;
 using Serilog.Core;
 using Serilog.Events;
 
@@ -8,7 +9,7 @@ namespace Flex.Infrastructures.Logging
         public void Enrich(LogEvent logEvent, ILogEventPropertyFactory propertyFactory)
         {
             logEvent.AddPropertyIfAbsent(propertyFactory.CreateProperty(
-                "log.level",
+                LogFields.LogLevel,
                 logEvent.Level.ToString().ToLowerInvariant()));
 
             if (logEvent.Exception == null)
@@ -17,13 +18,13 @@ namespace Flex.Infrastructures.Logging
             }
 
             logEvent.AddPropertyIfAbsent(propertyFactory.CreateProperty(
-                "error.type",
+                LogFields.ErrorType,
                 logEvent.Exception.GetType().Name));
             logEvent.AddPropertyIfAbsent(propertyFactory.CreateProperty(
-                "error.message",
+                LogFields.ErrorMessage,
                 logEvent.Exception.Message));
             logEvent.AddPropertyIfAbsent(propertyFactory.CreateProperty(
-                "error.stack_trace",
+                LogFields.ErrorStackTrace,
                 logEvent.Exception.ToString()));
         }
     }

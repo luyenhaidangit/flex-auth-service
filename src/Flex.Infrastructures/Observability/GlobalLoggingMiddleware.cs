@@ -260,56 +260,56 @@ public class GlobalLoggingMiddleware
 
         var properties = new List<IDisposable>
         {
-            LogContext.PushProperty("event.action", $"{logContext.Method} {logContext.Path}"),
-            LogContext.PushProperty("event.outcome", statusCode >= 400 ? "failure" : "success"),
-            LogContext.PushProperty("http.request.method", logContext.Method),
-            LogContext.PushProperty("url.path", logContext.Path),
-            LogContext.PushProperty("http.response.status_code", statusCode),
-            LogContext.PushProperty("event.duration", logContext.DurationMs * 1_000_000),
-            LogContext.PushProperty("labels.request_id", context.TraceIdentifier)
+            LogContext.PushProperty(LogFields.EventAction, $"{logContext.Method} {logContext.Path}"),
+            LogContext.PushProperty(LogFields.EventOutcome, statusCode >= 400 ? "failure" : "success"),
+            LogContext.PushProperty(LogFields.HttpRequestMethod, logContext.Method),
+            LogContext.PushProperty(LogFields.UrlPath, logContext.Path),
+            LogContext.PushProperty(LogFields.HttpResponseStatusCode, statusCode),
+            LogContext.PushProperty(LogFields.EventDuration, logContext.DurationMs * 1_000_000),
+            LogContext.PushProperty(LogFields.RequestId, context.TraceIdentifier)
         };
 
         if (!string.IsNullOrWhiteSpace(logContext.UserId))
         {
-            properties.Add(LogContext.PushProperty("user.id", logContext.UserId));
+            properties.Add(LogContext.PushProperty(LogFields.UserId, logContext.UserId));
         }
 
         if (!string.IsNullOrWhiteSpace(logContext.IpAddress))
         {
-            properties.Add(LogContext.PushProperty("client.ip", logContext.IpAddress));
+            properties.Add(LogContext.PushProperty(LogFields.ClientIp, logContext.IpAddress));
         }
 
         if (!string.IsNullOrWhiteSpace(logContext.UserAgent))
         {
-            properties.Add(LogContext.PushProperty("user_agent.original", logContext.UserAgent));
+            properties.Add(LogContext.PushProperty(LogFields.UserAgentOriginal, logContext.UserAgent));
         }
 
         if (!string.IsNullOrWhiteSpace(logContext.ClientId))
         {
-            properties.Add(LogContext.PushProperty("labels.client_id", logContext.ClientId));
+            properties.Add(LogContext.PushProperty(LogFields.ClientId, logContext.ClientId));
         }
 
         if (!string.IsNullOrWhiteSpace(logContext.RequestBody))
         {
-            properties.Add(LogContext.PushProperty("http.request.body.content", logContext.RequestBody));
+            properties.Add(LogContext.PushProperty(LogFields.HttpRequestBodyContent, logContext.RequestBody));
         }
 
         if (!string.IsNullOrWhiteSpace(logContext.ResponseBody))
         {
-            properties.Add(LogContext.PushProperty("http.response.body.content", logContext.ResponseBody));
+            properties.Add(LogContext.PushProperty(LogFields.HttpResponseBodyContent, logContext.ResponseBody));
         }
 
         if (activity != null)
         {
-            properties.Add(LogContext.PushProperty("trace.id", activity.TraceId.ToString()));
-            properties.Add(LogContext.PushProperty("span.id", activity.SpanId.ToString()));
+            properties.Add(LogContext.PushProperty(LogFields.TraceId, activity.TraceId.ToString()));
+            properties.Add(LogContext.PushProperty(LogFields.SpanId, activity.SpanId.ToString()));
         }
 
         if (exception != null)
         {
-            properties.Add(LogContext.PushProperty("error.type", exception.GetType().Name));
-            properties.Add(LogContext.PushProperty("error.message", exception.Message));
-            properties.Add(LogContext.PushProperty("error.stack_trace", exception.ToString()));
+            properties.Add(LogContext.PushProperty(LogFields.ErrorType, exception.GetType().Name));
+            properties.Add(LogContext.PushProperty(LogFields.ErrorMessage, exception.Message));
+            properties.Add(LogContext.PushProperty(LogFields.ErrorStackTrace, exception.ToString()));
         }
 
         return new CompositeDisposable(properties);
