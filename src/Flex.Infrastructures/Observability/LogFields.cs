@@ -32,7 +32,7 @@ public static class LogFields
     public const string HttpRequestMethod = "http.request.method";
     public const string HttpRequestBodyContent = "http.request.body.content";
     public const string HttpResponseStatusCode = "http.response.status_code";
-    public const string HttpResponseBodyContent = "http.response.body.content";
+    public const string HttpResponseBodyContent = "labels.http_response_body";
 
     public const string UrlPath = "url.path";
     public const string UrlFull = "url.full";
@@ -48,7 +48,7 @@ public static class LogFields
     public const string ErrorStackTrace = "error.stack_trace";
 
     public const string CorrelationId = "labels.correlation_id";
-    public const string RequestId = "labels.request_id";
+    public const string RequestId = "http.request.id";
     public const string ClientId = "labels.client_id";
     public const string TenantId = "labels.tenant_id";
     public const string Domain = "labels.domain";
