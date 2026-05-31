@@ -28,6 +28,7 @@ public static class LogFields
     public const string EventType = "event.type";
     public const string EventOutcome = "event.outcome";
     public const string EventDuration = "event.duration";
+    public const string EventDurationMs = "event.duration_ms";
 
     public const string HttpRequestMethod = "http.request.method";
     public const string HttpRequestBodyContent = "http.request.body.content";

@@ -52,9 +52,6 @@ public class GlobalLoggingMiddleware
             Path = context.Request.Path
         };
 
-        // Extract user context
-        ExtractUserContext(context, logContext);
-
         // Capture request body if whitelisted
         string? requestBody = null;
         if (ShouldLogBody(context.Request.Path))
@@ -76,6 +73,7 @@ public class GlobalLoggingMiddleware
             stopwatch.Stop();
             logContext.StatusCode = context.Response.StatusCode;
             logContext.DurationMs = stopwatch.ElapsedMilliseconds;
+            ExtractUserContext(context, logContext);
 
             // Capture response body if whitelisted
             if (ShouldLogBody(context.Request.Path))
@@ -93,6 +91,7 @@ public class GlobalLoggingMiddleware
                 ? context.Response.StatusCode 
                 : StatusCodes.Status500InternalServerError;
             logContext.DurationMs = stopwatch.ElapsedMilliseconds;
+            ExtractUserContext(context, logContext);
 
             using (PushEcsHttpProperties(context, logContext, ex))
             {
@@ -266,6 +265,7 @@ public class GlobalLoggingMiddleware
             LogContext.PushProperty(LogFields.UrlPath, logContext.Path),
             LogContext.PushProperty(LogFields.HttpResponseStatusCode, statusCode),
             LogContext.PushProperty(LogFields.EventDuration, logContext.DurationMs * 1_000_000),
+            LogContext.PushProperty(LogFields.EventDurationMs, logContext.DurationMs),
             LogContext.PushProperty(LogFields.RequestId, context.TraceIdentifier)
         };
 
