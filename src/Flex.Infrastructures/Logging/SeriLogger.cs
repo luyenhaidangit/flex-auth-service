@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Flex.Infrastructures.Observability;
 using Serilog;
+using Serilog.Formatting.Json;
 using Serilog.Sinks.OpenSearch;
 
 namespace Flex.Infrastructures.Logging
@@ -43,13 +44,13 @@ namespace Flex.Infrastructures.Logging
                 {
                     a.Console(outputTemplate: OutputTemplate);
                     a.File(
-                        path: "logs/log-.txt",
+                        new JsonFormatter(renderMessage: true),
+                        path: "logs/log-.json",
                         rollingInterval: RollingInterval.Day,
                         fileSizeLimitBytes: 10_000_000,
                         rollOnFileSizeLimit: true,
                         retainedFileCountLimit: 7,
-                        shared: true,
-                        outputTemplate: OutputTemplate
+                        shared: true
                     );
                 }, bufferSize: 5000)
                 .WriteTo.Async(a =>
