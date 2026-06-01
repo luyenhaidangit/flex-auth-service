@@ -22,7 +22,7 @@ namespace Flex.Infrastructures.Logging
                 : env.EnvironmentName.Trim().ToLowerInvariant();
 
             var sinkOptions = LoggingSinkOptions.Resolve(configuration);
-            var logstashOptions = LogstashLoggingOptionsResolver.Resolve(configuration);
+            var logstashOptions = LogstashLoggingOptions.Resolve(configuration);
 
             var serviceName = applicationName;
             Uri? logstashEndpoint = null;

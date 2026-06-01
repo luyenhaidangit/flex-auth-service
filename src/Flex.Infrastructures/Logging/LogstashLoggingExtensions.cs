@@ -10,7 +10,7 @@ namespace Flex.Infrastructures.Logging
             IConfiguration configuration)
         {
             var sinks = LoggingSinkOptions.Resolve(configuration);
-            var options = LogstashLoggingOptionsResolver.Resolve(configuration);
+            var options = LogstashLoggingOptions.Resolve(configuration);
 
             if (!sinks.Logstash || string.IsNullOrWhiteSpace(options.Uri))
             {
