@@ -29,5 +29,22 @@ namespace Flex.Infrastructures.Logging
 
             return services;
         }
+
+        public static IServiceCollection AddLogstashLoggingConnectionMonitor(
+            this IServiceCollection services,
+            IConfiguration configuration)
+        {
+            var options = LogstashLoggingOptionsResolver.Resolve(configuration);
+
+            if (!options.Enabled || string.IsNullOrWhiteSpace(options.Uri))
+            {
+                return services;
+            }
+
+            services.AddSingleton(options);
+            services.AddHostedService<LogstashConnectionMonitor>();
+
+            return services;
+        }
     }
 }

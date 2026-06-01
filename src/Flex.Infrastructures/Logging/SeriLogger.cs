@@ -25,7 +25,7 @@ namespace Flex.Infrastructures.Logging
 
             // Bind Elastic logging options from configuration
             var elasticOptions = ElasticLoggingOptionsResolver.Resolve(configuration);
-            var logstashOptions = ResolveLogstashOptions(configuration);
+            var logstashOptions = LogstashLoggingOptionsResolver.Resolve(configuration);
 
             var elasticUri = elasticOptions.NodeUris;
             var username = elasticOptions.Username;
@@ -33,6 +33,7 @@ namespace Flex.Infrastructures.Logging
             var serviceName = string.IsNullOrWhiteSpace(elasticOptions.ServiceName) ? applicationName : elasticOptions.ServiceName.Trim().ToLowerInvariant();
             var elasticIndexFormat = $"{elasticOptions.IndexPrefix}-{serviceName}-{{0:yyyy.MM.dd}}";
             var elasticEndpointIsValid = TryGetPrimaryEndpoint(elasticUri, out var elasticEndpoint);
+            var logstashEndpointIsValid = TryGetPrimaryEndpoint(logstashOptions.Uri, out var logstashEndpoint);
 
             // Create logger configuration
             var loggerConfig = new LoggerConfiguration()
@@ -57,7 +58,7 @@ namespace Flex.Infrastructures.Logging
                 }, bufferSize: 5000)
                 .WriteTo.Async(a =>
                 {
-                    if (logstashOptions.Enabled && TryGetPrimaryEndpoint(logstashOptions.Uri, out var logstashEndpoint) && logstashEndpoint != null)
+                    if (logstashOptions.Enabled && logstashEndpointIsValid && logstashEndpoint != null)
                     {
                         a.Sink(new LogstashHttpSink(logstashEndpoint, logstashOptions.QueueCapacity));
                     }
@@ -85,24 +86,20 @@ namespace Flex.Infrastructures.Logging
                     elasticUri);
             }
 
-            // Use Serilog
-            host.UseSerilog();
-        }
-
-        private static LogstashLoggingOptions ResolveLogstashOptions(IConfiguration configuration)
-        {
-            var loggingLogstash = configuration.GetSection("Logging:Logstash")
-                .Get<LogstashLoggingOptions>();
-
-            if (!string.IsNullOrWhiteSpace(loggingLogstash?.Uri))
+            if (logstashOptions.Enabled && !string.IsNullOrWhiteSpace(logstashOptions.Uri) && logstashEndpointIsValid && logstashEndpoint != null)
             {
-                return loggingLogstash;
+                Log.Information("Logstash logging sink enabled. Endpoint={Endpoint}", logstashEndpoint);
             }
 
-            return configuration.GetSection("Logstash")
-                .Get<LogstashLoggingOptions>()
-                ?? loggingLogstash
-                ?? new LogstashLoggingOptions();
+            if (logstashOptions.Enabled && !string.IsNullOrWhiteSpace(logstashOptions.Uri) && !logstashEndpointIsValid)
+            {
+                Log.Warning(
+                    "Logstash logging sink disabled because endpoint configuration is invalid. Endpoint={Endpoint}",
+                    logstashOptions.Uri);
+            }
+
+            // Use Serilog
+            host.UseSerilog();
         }
 
         private static bool TryGetPrimaryEndpoint(string nodeUris, out Uri? endpoint)

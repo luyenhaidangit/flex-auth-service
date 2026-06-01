@@ -5,5 +5,7 @@ namespace Flex.Infrastructures.Logging
         public bool Enabled { get; set; }
         public string Uri { get; set; } = string.Empty;
         public int QueueCapacity { get; set; } = 10000;
+        public int HealthCheckIntervalSeconds { get; set; } = 30;
+        public int HealthCheckTimeoutSeconds { get; set; } = 3;
     }
 }
