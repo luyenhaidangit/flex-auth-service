@@ -11,9 +11,10 @@ namespace Flex.Infrastructures.Logging
             this IServiceCollection services,
             IConfiguration configuration)
         {
+            var sinks = LoggingSinkOptions.Resolve(configuration);
             var options = ElasticLoggingOptionsResolver.Resolve(configuration);
 
-            if (!options.Enabled || string.IsNullOrWhiteSpace(options.NodeUris))
+            if (!sinks.Elastic || string.IsNullOrWhiteSpace(options.NodeUris))
             {
                 return services;
             }
@@ -34,9 +35,10 @@ namespace Flex.Infrastructures.Logging
             this IServiceCollection services,
             IConfiguration configuration)
         {
+            var sinks = LoggingSinkOptions.Resolve(configuration);
             var options = LogstashLoggingOptionsResolver.Resolve(configuration);
 
-            if (!options.Enabled || string.IsNullOrWhiteSpace(options.Uri))
+            if (!sinks.Logstash || string.IsNullOrWhiteSpace(options.Uri))
             {
                 return services;
             }

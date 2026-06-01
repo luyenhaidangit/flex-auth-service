@@ -66,12 +66,12 @@ namespace Flex.Infrastructures.Logging
                 }, bufferSize: 5000)
                 .WriteTo.Async(a =>
                 {
-                    if (logstashOptions.Enabled && logstashEndpointIsValid && logstashEndpoint != null)
+                    if (sinkOptions.Logstash && logstashEndpointIsValid && logstashEndpoint != null)
                     {
                         a.Sink(new LogstashHttpSink(logstashEndpoint, logstashOptions.QueueCapacity));
                     }
 
-                    if (elasticOptions.Enabled && elasticEndpointIsValid && elasticEndpoint != null)
+                    if (sinkOptions.Elastic && elasticEndpointIsValid && elasticEndpoint != null)
                     {
                         a.OpenSearch(new OpenSearchSinkOptions(elasticEndpoint)
                         {
@@ -87,14 +87,14 @@ namespace Flex.Infrastructures.Logging
             // Create logger
             Log.Logger = loggerConfig.CreateLogger();
 
-            if (elasticOptions.Enabled && !string.IsNullOrWhiteSpace(elasticUri) && !elasticEndpointIsValid)
+            if (sinkOptions.Elastic && !string.IsNullOrWhiteSpace(elasticUri) && !elasticEndpointIsValid)
             {
                 Log.Warning(
                     "Elasticsearch logging sink disabled because endpoint configuration is invalid. Endpoint={Endpoint}",
                     elasticUri);
             }
 
-            if (logstashOptions.Enabled && !string.IsNullOrWhiteSpace(logstashOptions.Uri) && !logstashEndpointIsValid)
+            if (sinkOptions.Logstash && !string.IsNullOrWhiteSpace(logstashOptions.Uri) && !logstashEndpointIsValid)
             {
                 Log.Warning(
                     "Logstash logging sink disabled because endpoint configuration is invalid. Endpoint={Endpoint}",

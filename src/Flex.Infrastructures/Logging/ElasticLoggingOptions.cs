@@ -2,7 +2,6 @@
 {
     public class ElasticLoggingOptions
     {
-        public bool Enabled { get; set; } = true;
         public string NodeUris { get; set; } = string.Empty;
         public string Username { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;

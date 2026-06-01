@@ -20,7 +20,7 @@ namespace Flex.Infrastructures.Logging
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            if (!_options.Enabled || string.IsNullOrWhiteSpace(_options.Uri))
+            if (string.IsNullOrWhiteSpace(_options.Uri))
             {
                 return;
             }
