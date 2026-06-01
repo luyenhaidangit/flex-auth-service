@@ -25,7 +25,7 @@ namespace Flex.Infrastructures.Logging
                 return;
             }
 
-            if (!TryGetPrimaryEndpoint(_options.Uri, out var endpoint) || endpoint == null)
+            if (!Uri.TryCreate(_options.Uri, UriKind.Absolute, out var endpoint) || endpoint.Port <= 0)
             {
                 _logger.LogWarning(
                     "Logstash logging monitor disabled because endpoint configuration is invalid. Endpoint={Endpoint}",
@@ -116,17 +116,5 @@ namespace Flex.Infrastructures.Logging
             _connected = false;
         }
 
-        private static bool TryGetPrimaryEndpoint(string value, out Uri? endpoint)
-        {
-            endpoint = null;
-
-            var uri = value
-                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                .FirstOrDefault();
-
-            return !string.IsNullOrWhiteSpace(uri)
-                && Uri.TryCreate(uri, UriKind.Absolute, out endpoint)
-                && endpoint.Port > 0;
-        }
     }
 }

@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Flex.Infrastructures.Observability;
-using Microsoft.Extensions.Configuration;
 using Serilog;
 using Serilog.Formatting.Json;
 
@@ -26,7 +25,10 @@ namespace Flex.Infrastructures.Logging
             var logstashOptions = LogstashLoggingOptionsResolver.Resolve(configuration);
 
             var serviceName = applicationName;
-            var logstashEndpointIsValid = TryGetPrimaryEndpoint(logstashOptions.Uri, out var logstashEndpoint);
+            Uri? logstashEndpoint = null;
+            var logstashEndpointIsValid =
+                !string.IsNullOrWhiteSpace(logstashOptions.Uri)
+                && Uri.TryCreate(logstashOptions.Uri, UriKind.Absolute, out logstashEndpoint);
 
             // Create logger configuration
             var loggerConfig = new LoggerConfiguration()
@@ -79,16 +81,5 @@ namespace Flex.Infrastructures.Logging
             host.UseSerilog();
         }
 
-        private static bool TryGetPrimaryEndpoint(string nodeUris, out Uri? endpoint)
-        {
-            endpoint = null;
-
-            var value = nodeUris
-                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                .FirstOrDefault();
-
-            return !string.IsNullOrWhiteSpace(value)
-                && Uri.TryCreate(value, UriKind.Absolute, out endpoint);
-        }
     }
 }
