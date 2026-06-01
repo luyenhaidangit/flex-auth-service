@@ -108,7 +108,6 @@ namespace Flex.Infrastructures.Logging
             else
             {
                 _logger.LogWarning(
-                    exception,
                     "Cannot connect to Logstash logging endpoint. Endpoint={Endpoint}, Reason={Reason}",
                     endpoint,
                     reason);

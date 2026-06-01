@@ -86,11 +86,6 @@ namespace Flex.Infrastructures.Logging
                     elasticUri);
             }
 
-            if (logstashOptions.Enabled && !string.IsNullOrWhiteSpace(logstashOptions.Uri) && logstashEndpointIsValid && logstashEndpoint != null)
-            {
-                Log.Information("Logstash logging sink enabled. Endpoint={Endpoint}", logstashEndpoint);
-            }
-
             if (logstashOptions.Enabled && !string.IsNullOrWhiteSpace(logstashOptions.Uri) && !logstashEndpointIsValid)
             {
                 Log.Warning(
