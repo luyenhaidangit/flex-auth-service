@@ -62,7 +62,11 @@ namespace Flex.Infrastructures.Logging
                 {
                     if (sinkOptions.Logstash && logstashEndpointIsValid && logstashEndpoint != null)
                     {
-                        a.Sink(new LogstashHttpSink(logstashEndpoint, logstashOptions.QueueCapacity));
+                        a.Http(
+                            requestUri: logstashEndpoint.ToString(),
+                            queueLimitBytes: logstashOptions.QueueLimitBytes,
+                            logEventsInBatchLimit: logstashOptions.LogEventsInBatchLimit,
+                            textFormatter: new JsonFormatter(renderMessage: true));
                     }
 
                 }, bufferSize: 10000);
