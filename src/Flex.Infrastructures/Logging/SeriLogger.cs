@@ -24,6 +24,7 @@ namespace Flex.Infrastructures.Logging
                 : env.EnvironmentName.Trim().ToLowerInvariant();
 
             // Bind Elastic logging options from configuration
+            var sinkOptions = LoggingSinkOptions.Resolve(configuration);
             var elasticOptions = ElasticLoggingOptionsResolver.Resolve(configuration);
             var logstashOptions = LogstashLoggingOptionsResolver.Resolve(configuration);
 
@@ -45,16 +46,23 @@ namespace Flex.Infrastructures.Logging
                 .Enrich.WithProperty(LogFields.HostName, Environment.MachineName)
                 .WriteTo.Async(a =>
                 {
-                    a.Console(outputTemplate: OutputTemplate);
-                    a.File(
-                        new JsonFormatter(renderMessage: true),
-                        path: "logs/log-.json",
-                        rollingInterval: RollingInterval.Day,
-                        fileSizeLimitBytes: 10_000_000,
-                        rollOnFileSizeLimit: true,
-                        retainedFileCountLimit: 7,
-                        shared: true
-                    );
+                    if (sinkOptions.Console)
+                    {
+                        a.Console(outputTemplate: OutputTemplate);
+                    }
+
+                    if (sinkOptions.File)
+                    {
+                        a.File(
+                            new JsonFormatter(renderMessage: true),
+                            path: "logs/log-.json",
+                            rollingInterval: RollingInterval.Day,
+                            fileSizeLimitBytes: 10_000_000,
+                            rollOnFileSizeLimit: true,
+                            retainedFileCountLimit: 7,
+                            shared: true
+                        );
+                    }
                 }, bufferSize: 5000)
                 .WriteTo.Async(a =>
                 {
