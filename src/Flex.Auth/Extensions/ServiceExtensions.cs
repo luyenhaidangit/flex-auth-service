@@ -37,7 +37,6 @@ namespace Flex.Auth.Extensions
 
             // Global Logging
             services.AddGlobalLogging(configuration, serviceName: "FlexAuthService");
-            services.AddElasticLoggingConnectionMonitor(configuration);
             services.AddLogstashLoggingConnectionMonitor(configuration);
 
             // Customize

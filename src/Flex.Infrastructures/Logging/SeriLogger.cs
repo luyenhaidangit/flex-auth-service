@@ -3,7 +3,6 @@ using Flex.Infrastructures.Observability;
 using Microsoft.Extensions.Configuration;
 using Serilog;
 using Serilog.Formatting.Json;
-using Serilog.Sinks.OpenSearch;
 
 namespace Flex.Infrastructures.Logging
 {
@@ -23,17 +22,10 @@ namespace Flex.Infrastructures.Logging
                 ? "development"
                 : env.EnvironmentName.Trim().ToLowerInvariant();
 
-            // Bind Elastic logging options from configuration
             var sinkOptions = LoggingSinkOptions.Resolve(configuration);
-            var elasticOptions = ElasticLoggingOptionsResolver.Resolve(configuration);
             var logstashOptions = LogstashLoggingOptionsResolver.Resolve(configuration);
 
-            var elasticUri = elasticOptions.NodeUris;
-            var username = elasticOptions.Username;
-            var password = elasticOptions.Password;
-            var serviceName = string.IsNullOrWhiteSpace(elasticOptions.ServiceName) ? applicationName : elasticOptions.ServiceName.Trim().ToLowerInvariant();
-            var elasticIndexFormat = $"{elasticOptions.IndexPrefix}-{serviceName}-{{0:yyyy.MM.dd}}";
-            var elasticEndpointIsValid = TryGetPrimaryEndpoint(elasticUri, out var elasticEndpoint);
+            var serviceName = applicationName;
             var logstashEndpointIsValid = TryGetPrimaryEndpoint(logstashOptions.Uri, out var logstashEndpoint);
 
             // Create logger configuration
@@ -71,28 +63,10 @@ namespace Flex.Infrastructures.Logging
                         a.Sink(new LogstashHttpSink(logstashEndpoint, logstashOptions.QueueCapacity));
                     }
 
-                    if (sinkOptions.Elastic && elasticEndpointIsValid && elasticEndpoint != null)
-                    {
-                        a.OpenSearch(new OpenSearchSinkOptions(elasticEndpoint)
-                        {
-                            IndexFormat = elasticIndexFormat,
-                            InlineFields = true,
-                            AutoRegisterTemplate = false,
-                            ModifyConnectionSettings = c => c.BasicAuthentication(username, password),
-                            EmitEventFailure = EmitEventFailureHandling.WriteToSelfLog
-                        });
-                    }
                 }, bufferSize: 10000);
 
             // Create logger
             Log.Logger = loggerConfig.CreateLogger();
-
-            if (sinkOptions.Elastic && !string.IsNullOrWhiteSpace(elasticUri) && !elasticEndpointIsValid)
-            {
-                Log.Warning(
-                    "Elasticsearch logging sink disabled because endpoint configuration is invalid. Endpoint={Endpoint}",
-                    elasticUri);
-            }
 
             if (sinkOptions.Logstash && !string.IsNullOrWhiteSpace(logstashOptions.Uri) && !logstashEndpointIsValid)
             {

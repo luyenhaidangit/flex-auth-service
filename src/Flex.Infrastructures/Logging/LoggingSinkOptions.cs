@@ -7,7 +7,6 @@ namespace Flex.Infrastructures.Logging
         public bool Console { get; set; } = true;
         public bool File { get; set; }
         public bool Logstash { get; set; }
-        public bool Elastic { get; set; }
 
         public static LoggingSinkOptions Resolve(IConfiguration configuration)
         {
