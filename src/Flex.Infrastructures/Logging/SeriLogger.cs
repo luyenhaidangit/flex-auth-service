@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Flex.Infrastructures.Observability;
+using Microsoft.Extensions.Configuration;
 using Serilog;
 using Serilog.Formatting.Json;
 using Serilog.Sinks.OpenSearch;
@@ -24,6 +25,7 @@ namespace Flex.Infrastructures.Logging
 
             // Bind Elastic logging options from configuration
             var elasticOptions = ElasticLoggingOptionsResolver.Resolve(configuration);
+            var logstashOptions = ResolveLogstashOptions(configuration);
 
             var elasticUri = elasticOptions.NodeUris;
             var username = elasticOptions.Username;
@@ -55,6 +57,11 @@ namespace Flex.Infrastructures.Logging
                 }, bufferSize: 5000)
                 .WriteTo.Async(a =>
                 {
+                    if (logstashOptions.Enabled && TryGetPrimaryEndpoint(logstashOptions.Uri, out var logstashEndpoint) && logstashEndpoint != null)
+                    {
+                        a.Sink(new LogstashHttpSink(logstashEndpoint, logstashOptions.QueueCapacity));
+                    }
+
                     if (elasticOptions.Enabled && elasticEndpointIsValid && elasticEndpoint != null)
                     {
                         a.OpenSearch(new OpenSearchSinkOptions(elasticEndpoint)
@@ -80,6 +87,22 @@ namespace Flex.Infrastructures.Logging
 
             // Use Serilog
             host.UseSerilog();
+        }
+
+        private static LogstashLoggingOptions ResolveLogstashOptions(IConfiguration configuration)
+        {
+            var loggingLogstash = configuration.GetSection("Logging:Logstash")
+                .Get<LogstashLoggingOptions>();
+
+            if (!string.IsNullOrWhiteSpace(loggingLogstash?.Uri))
+            {
+                return loggingLogstash;
+            }
+
+            return configuration.GetSection("Logstash")
+                .Get<LogstashLoggingOptions>()
+                ?? loggingLogstash
+                ?? new LogstashLoggingOptions();
         }
 
         private static bool TryGetPrimaryEndpoint(string nodeUris, out Uri? endpoint)
