@@ -68,13 +68,6 @@ namespace Flex.Infrastructures.Logging
             // Create logger
             Log.Logger = loggerConfig.CreateLogger();
 
-            if (sinkOptions.Logstash && !logstashEndpointIsValid)
-            {
-                Log.Warning(
-                    "Logstash logging sink disabled because endpoint configuration is invalid. Endpoint={Endpoint}",
-                    logstashOptions.Uri);
-            }
-
             // Use Serilog
             host.UseSerilog();
         }
