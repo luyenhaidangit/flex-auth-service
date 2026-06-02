@@ -22,6 +22,7 @@ namespace Flex.Infrastructures.Logging
             // Options configuration
             var sinkOptions = LoggingSinkOptions.Resolve(configuration);
             var logstashOptions = LogstashLoggingOptions.Resolve(configuration);
+            var logstashEndpointIsValid = Uri.TryCreate(logstashOptions.Uri, UriKind.Absolute, out var logstashEndpoint);
 
             // Create logger configuration
             var loggerConfig = new LoggerConfiguration()
@@ -53,10 +54,10 @@ namespace Flex.Infrastructures.Logging
                 }, bufferSize: 5000)
                 .WriteTo.Async(a =>
                 {
-                    if (sinkOptions.Logstash)
+                    if (sinkOptions.Logstash && logstashEndpointIsValid)
                     {
                         a.Http(
-                            requestUri: logstashOptions.Uri,
+                            requestUri: logstashEndpoint!.ToString(),
                             queueLimitBytes: logstashOptions.QueueLimitBytes,
                             logEventsInBatchLimit: logstashOptions.LogEventsInBatchLimit,
                             textFormatter: new JsonFormatter(renderMessage: true));
@@ -67,7 +68,7 @@ namespace Flex.Infrastructures.Logging
             // Create logger
             Log.Logger = loggerConfig.CreateLogger();
 
-            if (sinkOptions.Logstash && !string.IsNullOrWhiteSpace(logstashOptions.Uri) && !logstashEndpointIsValid)
+            if (sinkOptions.Logstash && !logstashEndpointIsValid)
             {
                 Log.Warning(
                     "Logstash logging sink disabled because endpoint configuration is invalid. Endpoint={Endpoint}",
