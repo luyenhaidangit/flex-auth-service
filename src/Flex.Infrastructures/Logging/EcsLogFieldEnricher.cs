@@ -4,7 +4,7 @@ using Serilog.Events;
 
 namespace Flex.Infrastructures.Logging
 {
-    internal sealed class EcsLogEventEnricher : ILogEventEnricher
+    public class EcsLogFieldEnricher : ILogEventEnricher
     {
         public void Enrich(LogEvent logEvent, ILogEventPropertyFactory propertyFactory)
         {

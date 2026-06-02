@@ -28,7 +28,7 @@ namespace Flex.Infrastructures.Logging
             var loggerConfig = new LoggerConfiguration()
                 .ReadFrom.Configuration(configuration)
                 .Enrich.FromLogContext()
-                .Enrich.With(new EcsLogEventEnricher())
+                .Enrich.With(new EcsLogFieldEnricher())
                 .Enrich.WithProperty(LogFields.ServiceName, serviceName)
                 .Enrich.WithProperty(LogFields.ServiceEnvironment, environmentName)
                 .Enrich.WithProperty(LogFields.HostName, Environment.MachineName)

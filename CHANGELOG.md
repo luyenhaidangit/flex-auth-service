@@ -9,6 +9,8 @@
 - Normalize `service.environment` log values to lowercase for stable Elasticsearch aggregations.
 - Remove the in-process Logstash connection monitor so Logstash availability can be handled by external monitoring.
 - Remove unused Logstash health-check settings from configuration after dropping the connection monitor.
+- Rename the ECS Serilog enricher to better describe its field-enrichment role.
+- Make the ECS Serilog field enricher public for reuse by other application assemblies.
 
 ### Fixed
 
