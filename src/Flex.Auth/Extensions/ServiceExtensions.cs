@@ -7,7 +7,6 @@ using Flex.Auth.Services.Interfaces;
 using Flex.Infrastructures.Authentication;
 using Flex.Infrastructures.EntityFrameworkCore;
 using Flex.Infrastructures.Http;
-using Flex.Infrastructures.Logging;
 using Flex.Infrastructures.Messaging.Outbox;
 using Flex.Infrastructures.Messaging.RabbitMQ;
 using Flex.Infrastructures.Observability;
@@ -37,7 +36,6 @@ namespace Flex.Auth.Extensions
 
             // Global Logging
             services.AddGlobalLogging(configuration, serviceName: "FlexAuthService");
-            services.AddLogstashLoggingConnectionMonitor(configuration);
 
             // Customize
             services.AddRoutingConventions();
