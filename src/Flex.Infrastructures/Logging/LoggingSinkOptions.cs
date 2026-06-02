@@ -2,7 +2,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace Flex.Infrastructures.Logging
 {
-    internal sealed class LoggingSinkOptions
+    public class LoggingSinkOptions
     {
         public bool Console { get; set; } = true;
         public bool File { get; set; }
