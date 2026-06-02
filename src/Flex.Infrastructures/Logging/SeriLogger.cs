@@ -1,7 +1,7 @@
-﻿using Microsoft.AspNetCore.Builder;
-using Flex.Infrastructures.Observability;
-using Serilog;
+﻿using Serilog;
 using Serilog.Formatting.Json;
+using Microsoft.AspNetCore.Builder;
+using Flex.Infrastructures.Observability;
 
 namespace Flex.Infrastructures.Logging
 {
@@ -16,15 +16,13 @@ namespace Flex.Infrastructures.Logging
             var host = builder.Host;
 
             // Read application name and environment name
-            var applicationName = env.ApplicationName?.ToLowerInvariant().Replace('.', '-') ?? "unknown-application";
-            var environmentName = string.IsNullOrWhiteSpace(env.EnvironmentName)
-                ? "development"
-                : env.EnvironmentName.Trim().ToLowerInvariant();
+            var serviceName = env.ApplicationName?.ToLowerInvariant().Replace('.', '-') ?? "unknown-application";
+            var environmentName = string.IsNullOrWhiteSpace(env.EnvironmentName) ? "development" : env.EnvironmentName.Trim().ToLowerInvariant();
 
+            // Options configuration
             var sinkOptions = LoggingSinkOptions.Resolve(configuration);
             var logstashOptions = LogstashLoggingOptions.Resolve(configuration);
 
-            var serviceName = applicationName;
             Uri? logstashEndpoint = null;
             var logstashEndpointIsValid =
                 !string.IsNullOrWhiteSpace(logstashOptions.Uri)
