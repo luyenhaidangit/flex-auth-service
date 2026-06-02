@@ -8,6 +8,7 @@
 - Write Serilog properties as root OpenSearch fields so ECS names such as `log.level`, `service.name`, and `trace.id` are populated directly.
 - Normalize `service.environment` log values to lowercase for stable Elasticsearch aggregations.
 - Remove the in-process Logstash connection monitor so Logstash availability can be handled by external monitoring.
+- Remove unused Logstash health-check settings from configuration after dropping the connection monitor.
 
 ### Fixed
 
