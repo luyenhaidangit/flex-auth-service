@@ -15,31 +15,26 @@ namespace Flex.Infrastructures.Logging
             var env = builder.Environment;
             var host = builder.Host;
 
-            // Read application name and environment name
-            var serviceName = env.ApplicationName?.ToLowerInvariant().Replace('.', '-') ?? "unknown-application";
-            var environmentName = string.IsNullOrWhiteSpace(env.EnvironmentName) ? "development" : env.EnvironmentName.Trim().ToLowerInvariant();
-
             // Options configuration
-            var sinkOptions = LoggingSinkOptions.Resolve(configuration);
-            var logstashOptions = LogstashLoggingOptions.Resolve(configuration);
-            var logstashEndpointIsValid = Uri.TryCreate(logstashOptions.Uri, UriKind.Absolute, out var logstashEndpoint);
+            var loggingOptions = SerilogLoggingOptions.Resolve(configuration, env);
+            var logstashEndpointIsValid = Uri.TryCreate(loggingOptions.Logstash.Uri, UriKind.Absolute, out var logstashEndpoint);
 
             // Create logger configuration
             var loggerConfig = new LoggerConfiguration()
                 .ReadFrom.Configuration(configuration)
                 .Enrich.FromLogContext()
                 .Enrich.With(new EcsLogFieldEnricher())
-                .Enrich.WithProperty(LogFields.ServiceName, serviceName)
-                .Enrich.WithProperty(LogFields.ServiceEnvironment, environmentName)
-                .Enrich.WithProperty(LogFields.HostName, Environment.MachineName)
+                .Enrich.WithProperty(LogFields.ServiceName, loggingOptions.ServiceName)
+                .Enrich.WithProperty(LogFields.ServiceEnvironment, loggingOptions.ServiceEnvironment)
+                .Enrich.WithProperty(LogFields.HostName, loggingOptions.HostName)
                 .WriteTo.Async(a =>
                 {
-                    if (sinkOptions.Console)
+                    if (loggingOptions.Sinks.Console)
                     {
                         a.Console(outputTemplate: OutputTemplate);
                     }
 
-                    if (sinkOptions.File)
+                    if (loggingOptions.Sinks.File)
                     {
                         a.File(
                             new JsonFormatter(renderMessage: true),
@@ -54,12 +49,12 @@ namespace Flex.Infrastructures.Logging
                 }, bufferSize: 5000)
                 .WriteTo.Async(a =>
                 {
-                    if (sinkOptions.Logstash && logstashEndpointIsValid)
+                    if (loggingOptions.Sinks.Logstash && logstashEndpointIsValid)
                     {
                         a.Http(
                             requestUri: logstashEndpoint!.ToString(),
-                            queueLimitBytes: logstashOptions.QueueLimitBytes,
-                            logEventsInBatchLimit: logstashOptions.LogEventsInBatchLimit,
+                            queueLimitBytes: loggingOptions.Logstash.QueueLimitBytes,
+                            logEventsInBatchLimit: loggingOptions.Logstash.LogEventsInBatchLimit,
                             textFormatter: new JsonFormatter(renderMessage: true));
                     }
 
