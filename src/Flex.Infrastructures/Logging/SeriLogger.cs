@@ -23,11 +23,6 @@ namespace Flex.Infrastructures.Logging
             var sinkOptions = LoggingSinkOptions.Resolve(configuration);
             var logstashOptions = LogstashLoggingOptions.Resolve(configuration);
 
-            Uri? logstashEndpoint = null;
-            var logstashEndpointIsValid =
-                !string.IsNullOrWhiteSpace(logstashOptions.Uri)
-                && Uri.TryCreate(logstashOptions.Uri, UriKind.Absolute, out logstashEndpoint);
-
             // Create logger configuration
             var loggerConfig = new LoggerConfiguration()
                 .ReadFrom.Configuration(configuration)
@@ -58,10 +53,10 @@ namespace Flex.Infrastructures.Logging
                 }, bufferSize: 5000)
                 .WriteTo.Async(a =>
                 {
-                    if (sinkOptions.Logstash && logstashEndpointIsValid && logstashEndpoint != null)
+                    if (sinkOptions.Logstash)
                     {
                         a.Http(
-                            requestUri: logstashEndpoint.ToString(),
+                            requestUri: logstashOptions.Uri,
                             queueLimitBytes: logstashOptions.QueueLimitBytes,
                             logEventsInBatchLimit: logstashOptions.LogEventsInBatchLimit,
                             textFormatter: new JsonFormatter(renderMessage: true));
