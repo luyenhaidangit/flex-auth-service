@@ -55,6 +55,7 @@ namespace Flex.Infrastructures.Logging
                             requestUri: logstashEndpoint!.ToString(),
                             queueLimitBytes: loggingOptions.Logstash.QueueLimitBytes,
                             logEventsInBatchLimit: loggingOptions.Logstash.LogEventsInBatchLimit,
+                            period: loggingOptions.Logstash.FlushTimeout,
                             textFormatter: new JsonFormatter(renderMessage: true));
                     }
 

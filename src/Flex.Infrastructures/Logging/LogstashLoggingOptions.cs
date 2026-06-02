@@ -7,6 +7,9 @@ namespace Flex.Infrastructures.Logging
         public string Uri { get; set; } = string.Empty;
         public long QueueLimitBytes { get; set; } = 10_000_000;
         public int LogEventsInBatchLimit { get; set; } = 100;
+        public int FlushTimeoutMilliseconds { get; set; } = 5000;
+
+        public TimeSpan FlushTimeout => TimeSpan.FromMilliseconds(Math.Max(1, FlushTimeoutMilliseconds));
 
         public static LogstashLoggingOptions Resolve(IConfiguration configuration)
         {
