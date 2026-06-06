@@ -13,7 +13,7 @@ namespace Flex.Infrastructures.Resilience
 
         /// <summary>
         /// Attempt timeout in seconds. This is the timeout for each individual attempt (before retry).
-        /// Must be less than TotalRequestTimeout. Default: 10 seconds (Polly default).
+        /// Must be less than TotalRequestTimeout. Default: 10 seconds.
         /// </summary>
         public int AttemptTimeoutSeconds { get; set; } = 10;
 
@@ -101,4 +101,3 @@ namespace Flex.Infrastructures.Resilience
         public int QueueLimit { get; set; } = 0;
     }
 }
-
