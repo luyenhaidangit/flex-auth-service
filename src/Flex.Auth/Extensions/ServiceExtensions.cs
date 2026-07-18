@@ -14,6 +14,7 @@ using Flex.Infrastructures.OpenApi;
 using Flex.Infrastructures.Persistence;
 using Flex.Infrastructures.RateLimiting;
 using Flex.Infrastructures.Resilience;
+using Flex.Infrastructures.Routing;
 using Microsoft.AspNetCore.Identity;
 
 namespace Flex.Auth.Extensions
