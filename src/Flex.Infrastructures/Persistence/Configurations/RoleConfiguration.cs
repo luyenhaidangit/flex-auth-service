@@ -1,4 +1,4 @@
-﻿using Flex.Domain.Entities;
+using Flex.Domain.Entities;
 using Flex.Infrastructures.Persistence.Converters;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -40,9 +40,6 @@ namespace Flex.Infrastructures.Persistence.Configurations
 
             builder.Property(r => r.IsActive)
                    .HasColumnName("IS_ACTIVE")
-                   .HasColumnType("CHAR(1)")
-                   .HasConversion(new BoolToCharConverter())
-                   .HasMaxLength(1)
                    .IsRequired()
                    .HasDefaultValue(true);
 
