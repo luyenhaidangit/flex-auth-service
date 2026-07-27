@@ -1,4 +1,4 @@
-﻿using Flex.Domain.Entities;
+using Flex.Domain.Entities;
 using Flex.Auth.Events;
 using Flex.Auth.Repositories;
 using Flex.Auth.Repositories.Interfaces;
@@ -49,7 +49,7 @@ namespace Flex.Auth.Extensions
             services.AddDownstreamResilience(configuration);
 
             // Database
-            services.ConfigureServiceDbContext<IdentityDbContext>(configuration, useWallet: true);
+            services.ConfigureServiceDbContext<IdentityDbContext>(configuration);
 
             // Message queue
             services.AddRabbitMQ(configuration);

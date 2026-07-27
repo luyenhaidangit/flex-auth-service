@@ -1,5 +1,4 @@
-﻿using Flex.Domain.Entities;
-using Flex.Infrastructures.Persistence.Converters;
+using Flex.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -33,9 +32,6 @@ namespace Flex.Infrastructures.Persistence.Configurations
 
             builder.Property(u => u.EmailConfirmed)
                    .HasColumnName("EMAIL_CONFIRMED")
-                   .HasColumnType("CHAR(1)")
-                   .HasConversion(new BoolToCharConverter())
-                   .HasMaxLength(1)
                    .HasDefaultValue(false);
 
             builder.Property(u => u.PasswordHash).HasColumnName("PASSWORD_HASH");
@@ -48,24 +44,15 @@ namespace Flex.Infrastructures.Persistence.Configurations
 
             builder.Property(u => u.PhoneNumberConfirmed)
                    .HasColumnName("PHONE_NUMBER_CONFIRMED")
-                   .HasColumnType("CHAR(1)")
-                   .HasConversion(new BoolToCharConverter())
-                   .HasMaxLength(1)
                    .HasDefaultValue(false);
 
             builder.Property(u => u.TwoFactorEnabled)
                    .HasColumnName("TWO_FACTOR_ENABLED")
-                   .HasColumnType("CHAR(1)")
-                   .HasConversion(new BoolToCharConverter())
-                   .HasMaxLength(1)
                    .HasDefaultValue(false);
 
             builder.Property(u => u.LockoutEnd).HasColumnName("LOCKOUT_END");
             builder.Property(u => u.LockoutEnabled)
                    .HasColumnName("LOCKOUT_ENABLED")
-                   .HasColumnType("CHAR(1)")
-                   .HasConversion(new BoolToCharConverter())
-                   .HasMaxLength(1)
                    .HasDefaultValue(false);
 
             builder.Property(u => u.AccessFailedCount).HasColumnName("ACCESS_FAILED_COUNT");

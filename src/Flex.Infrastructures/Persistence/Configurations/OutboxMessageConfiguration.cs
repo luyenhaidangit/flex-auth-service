@@ -24,7 +24,7 @@ namespace Flex.Infrastructures.Persistence.Configurations
             builder.Property(x => x.Payload)
                 .HasColumnName("PAYLOAD")
                 .IsRequired()
-                .HasColumnType("CLOB");
+                .HasColumnType("text");
 
             builder.Property(x => x.Exchange)
                 .HasColumnName("EXCHANGE")

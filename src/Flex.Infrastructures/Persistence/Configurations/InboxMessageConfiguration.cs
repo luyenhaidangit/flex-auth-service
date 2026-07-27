@@ -45,7 +45,7 @@ namespace Flex.Infrastructures.Persistence.Configurations
 
             builder.Property(x => x.Payload)
                 .HasColumnName("PAYLOAD")
-                .HasColumnType("CLOB")
+                .HasColumnType("text")
                 .IsRequired();
 
             builder.Property(x => x.FirstSeenAt)

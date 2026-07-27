@@ -3,7 +3,7 @@ using Flex.Domain.Entities;
 using Flex.Infrastructures.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Oracle.ManagedDataAccess.Client;
+using Npgsql;
 
 namespace Flex.Infrastructures.Messaging.Inbox
 {
@@ -107,9 +107,9 @@ namespace Flex.Infrastructures.Messaging.Inbox
 
         private static bool IsUniqueConstraintViolation(DbUpdateException ex)
         {
-            // Oracle unique constraint violation: ORA-00001
-            return ex.InnerException is OracleException oracleEx
-                && oracleEx.Number == 1; // ORA-00001: unique constraint violated
+            // PostgreSQL unique constraint violation: SqlState 23505 (UniqueViolation)
+            return ex.InnerException is PostgresException postgresEx
+                && postgresEx.SqlState == PostgresErrorCodes.UniqueViolation;
         }
     }
 }
