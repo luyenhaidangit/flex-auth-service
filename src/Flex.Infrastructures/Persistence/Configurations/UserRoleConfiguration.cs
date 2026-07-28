@@ -8,11 +8,11 @@ namespace Flex.Infrastructures.Persistence.Configurations
     {
         public void Configure(EntityTypeBuilder<UserRole> builder)
         {
-            builder.ToTable("USER_ROLES");
+            builder.ToTable("user_roles");
 
             builder.HasKey(ur => new { ur.UserId, ur.RoleId });
-            builder.Property(ur => ur.UserId).HasColumnName("USER_ID");
-            builder.Property(ur => ur.RoleId).HasColumnName("ROLE_ID");
+            builder.Property(ur => ur.UserId).HasColumnName("user_id");
+            builder.Property(ur => ur.RoleId).HasColumnName("role_id");
         }
     }
 }

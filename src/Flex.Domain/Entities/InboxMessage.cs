@@ -6,8 +6,13 @@ namespace Flex.Domain.Entities
     /// Entity representing a processed message in the inbox table.
     /// This implements the Inbox pattern for message deduplication.
     /// </summary>
-    public class InboxMessage : EntityBase<long>
+    public class InboxMessage : EntityBase<Guid>
     {
+        public InboxMessage()
+        {
+            Id = Guid.NewGuid();
+        }
+
         /// <summary>
         /// Unique message identifier from EventEnvelope.Id
         /// </summary>

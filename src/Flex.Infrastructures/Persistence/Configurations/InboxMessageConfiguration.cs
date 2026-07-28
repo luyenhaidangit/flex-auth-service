@@ -8,74 +8,74 @@ namespace Flex.Infrastructures.Persistence.Configurations
     {
         public void Configure(EntityTypeBuilder<InboxMessage> builder)
         {
-            builder.ToTable("INBOX_MESSAGES");
+            builder.ToTable("inbox_messages");
 
             builder.HasKey(x => x.Id);
 
             builder.Property(x => x.Id)
-                .HasColumnName("ID");
+                .HasColumnName("id");
 
             builder.Property(x => x.MessageId)
-                .HasColumnName("MESSAGE_ID")
+                .HasColumnName("message_id")
                 .IsRequired();
 
             // Unique constraint on (MessageId, HandlerName) for deduplication per handler
             builder.HasIndex(x => new { x.MessageId, x.HandlerName })
                 .IsUnique()
-                .HasDatabaseName("UQ_INBOX_DEDUP");
+                .HasDatabaseName("uq_inbox_dedup");
 
             builder.Property(x => x.Source)
-                .HasColumnName("SOURCE")
+                .HasColumnName("source")
                 .HasMaxLength(64)
                 .IsRequired();
 
             builder.Property(x => x.EventType)
-                .HasColumnName("EVENT_TYPE")
+                .HasColumnName("event_type")
                 .HasMaxLength(128)
                 .IsRequired();
 
             builder.Property(x => x.HandlerName)
-                .HasColumnName("HANDLER_NAME")
+                .HasColumnName("handler_name")
                 .HasMaxLength(128)
                 .IsRequired();
 
             builder.Property(x => x.BusinessKey)
-                .HasColumnName("BUSINESS_KEY")
+                .HasColumnName("business_key")
                 .HasMaxLength(128);
 
             builder.Property(x => x.Payload)
-                .HasColumnName("PAYLOAD")
+                .HasColumnName("payload")
                 .HasColumnType("text")
                 .IsRequired();
 
             builder.Property(x => x.FirstSeenAt)
-                .HasColumnName("FIRST_SEEN_AT")
+                .HasColumnName("first_seen_at")
                 .IsRequired();
 
             builder.Property(x => x.ProcessedAt)
-                .HasColumnName("PROCESSED_AT")
+                .HasColumnName("processed_at")
                 .IsRequired();
 
             builder.Property(x => x.Status)
-                .HasColumnName("STATUS")
+                .HasColumnName("status")
                 .HasMaxLength(10)
                 .IsRequired();
 
             builder.Property(x => x.RetryCount)
-                .HasColumnName("RETRY_COUNT")
+                .HasColumnName("retry_count")
                 .IsRequired();
 
             builder.Property(x => x.ErrorMessage)
-                .HasColumnName("ERROR_MESSAGE")
+                .HasColumnName("error_message")
                 .HasMaxLength(2000);
 
             // Index for business key lookups
             builder.HasIndex(x => x.BusinessKey)
-                .HasDatabaseName("IX_INBOX_MESSAGES_BUSINESS_KEY");
+                .HasDatabaseName("ix_inbox_messages_business_key");
 
             // Index for cleanup queries
             builder.HasIndex(x => x.ProcessedAt)
-                .HasDatabaseName("IX_INBOX_MESSAGES_PROCESSED_AT");
+                .HasDatabaseName("ix_inbox_messages_processed_at");
         }
     }
 }

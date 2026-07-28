@@ -7,8 +7,13 @@ namespace Flex.Domain.Entities
     /// Entity representing an integration event stored in the outbox table.
     /// This implements the Transactional Outbox pattern to ensure reliable message delivery.
     /// </summary>
-    public class OutboxMessage : EntityBase<long>
+    public class OutboxMessage : EntityBase<Guid>
     {
+        public OutboxMessage()
+        {
+            Id = Guid.NewGuid();
+        }
+
         /// <summary>
         /// Event type full name for deserialization if needed.
         /// </summary>

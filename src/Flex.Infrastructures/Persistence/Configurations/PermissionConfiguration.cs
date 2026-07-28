@@ -8,46 +8,46 @@ namespace Flex.Infrastructures.Persistence.Configurations
     {
         public void Configure(EntityTypeBuilder<Permission> builder)
         {
-            builder.ToTable("PERMISSIONS");
+            builder.ToTable("permissions");
             builder.HasKey(x => x.Id);
 
             builder.Property(x => x.Id)
-                .HasColumnName("ID");
+                .HasColumnName("id");
 
             builder.Property(x => x.Code)
                 .IsRequired()
                 .HasMaxLength(150)
-                .HasColumnName("CODE");
+                .HasColumnName("code");
 
             builder.Property(x => x.Name)
                 .IsRequired()
                 .HasMaxLength(200)
-                .HasColumnName("NAME");
+                .HasColumnName("name");
 
             builder.Property(x => x.Description)
                 .HasMaxLength(500)
-                .HasColumnName("DESCRIPTION");
+                .HasColumnName("description");
 
             builder.Property(x => x.IsAssignable)
                 .IsRequired()
                 .HasDefaultValue(true)
-                .HasColumnName("IS_ASSIGNABLE");
+                .HasColumnName("is_assignable");
 
             builder.Property(x => x.SortOrder)
                 .IsRequired()
-                .HasColumnName("SORT_ORDER");
+                .HasColumnName("sort_order");
 
             builder.Property(x => x.IsActive)
                 .IsRequired()
-                .HasColumnName("IS_ACTIVE");
+                .HasColumnName("is_active");
 
             builder.Property(x => x.IsCrudRule)
                 .IsRequired()
                 .HasDefaultValue(0)
-                .HasColumnName("IS_CRUD_RULE");
+                .HasColumnName("is_crud_rule");
 
             builder.Property(x => x.ParentPermissionId)
-                .HasColumnName("PARENT_PERMISSION_ID");
+                .HasColumnName("parent_permission_id");
 
             builder.HasIndex(x => x.Code).IsUnique();
 

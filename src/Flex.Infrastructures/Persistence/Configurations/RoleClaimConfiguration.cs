@@ -8,14 +8,14 @@ namespace Flex.Infrastructures.Persistence.Configurations
     {
         public void Configure(EntityTypeBuilder<RoleClaim> builder)
         {
-            builder.ToTable("ROLE_CLAIMS");
+            builder.ToTable("role_claims");
 
             builder.HasKey(rc => rc.Id);
-            builder.Property(rc => rc.Id).HasColumnName("ID");
+            builder.Property(rc => rc.Id).HasColumnName("id");
 
-            builder.Property(rc => rc.RoleId).HasColumnName("ROLE_ID");
-            builder.Property(rc => rc.ClaimType).HasColumnName("CLAIM_TYPE").HasMaxLength(100).IsRequired();
-            builder.Property(rc => rc.ClaimValue).HasColumnName("CLAIM_VALUE").HasMaxLength(100);
+            builder.Property(rc => rc.RoleId).HasColumnName("role_id");
+            builder.Property(rc => rc.ClaimType).HasColumnName("claim_type").HasMaxLength(100).IsRequired();
+            builder.Property(rc => rc.ClaimValue).HasColumnName("claim_value").HasMaxLength(100);
         }
     }
 }

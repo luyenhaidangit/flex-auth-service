@@ -8,21 +8,21 @@ namespace Flex.Infrastructures.Persistence.Configurations
     {
         public void Configure(EntityTypeBuilder<UserToken> builder)
         {
-            builder.ToTable("USER_TOKENS");
+            builder.ToTable("user_tokens");
 
             builder.HasKey(ut => new { ut.UserId, ut.LoginProvider, ut.Name });
 
             builder.Property(ut => ut.UserId)
-                   .HasColumnName("USER_ID");
+                   .HasColumnName("user_id");
 
             builder.Property(ut => ut.LoginProvider)
-                   .HasColumnName("LOGIN_PROVIDER");
+                   .HasColumnName("login_provider");
 
             builder.Property(ut => ut.Name)
-                   .HasColumnName("NAME");
+                   .HasColumnName("name");
 
             builder.Property(ut => ut.Value)
-                   .HasColumnName("VALUE");
+                   .HasColumnName("value");
         }
     }
 }

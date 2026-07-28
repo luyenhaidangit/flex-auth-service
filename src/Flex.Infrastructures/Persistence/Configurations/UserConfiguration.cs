@@ -8,66 +8,66 @@ namespace Flex.Infrastructures.Persistence.Configurations
     {
         public void Configure(EntityTypeBuilder<User> builder)
         {
-            builder.ToTable("USERS");
+            builder.ToTable("users");
 
             builder.Property(u => u.Id)
-                   .HasColumnName("ID");
+                   .HasColumnName("id");
 
             builder.Property(u => u.UserName)
-                   .HasColumnName("USER_NAME")
+                   .HasColumnName("user_name")
                    .HasMaxLength(256);
 
             builder.Property(u => u.NormalizedUserName)
-                   .HasColumnName("NORMALIZED_USER_NAME")
+                   .HasColumnName("normalized_user_name")
                    .HasMaxLength(256)
                    .IsRequired();
 
             builder.Property(u => u.Email)
-                   .HasColumnName("EMAIL")
+                   .HasColumnName("email")
                    .HasMaxLength(256);
 
             builder.Property(u => u.NormalizedEmail)
-                   .HasColumnName("NORMALIZED_EMAIL")
+                   .HasColumnName("normalized_email")
                    .HasMaxLength(256);
 
             builder.Property(u => u.EmailConfirmed)
-                   .HasColumnName("EMAIL_CONFIRMED")
+                   .HasColumnName("email_confirmed")
                    .HasDefaultValue(false);
 
-            builder.Property(u => u.PasswordHash).HasColumnName("PASSWORD_HASH");
-            builder.Property(u => u.SecurityStamp).HasColumnName("SECURITY_STAMP");
-            builder.Property(u => u.ConcurrencyStamp).HasColumnName("CONCURRENCY_STAMP").IsConcurrencyToken();
+            builder.Property(u => u.PasswordHash).HasColumnName("password_hash");
+            builder.Property(u => u.SecurityStamp).HasColumnName("security_stamp");
+            builder.Property(u => u.ConcurrencyStamp).HasColumnName("concurrency_stamp").IsConcurrencyToken();
 
             builder.Property(u => u.PhoneNumber)
-                   .HasColumnName("PHONE_NUMBER")
+                   .HasColumnName("phone_number")
                    .HasMaxLength(50);
 
             builder.Property(u => u.PhoneNumberConfirmed)
-                   .HasColumnName("PHONE_NUMBER_CONFIRMED")
+                   .HasColumnName("phone_number_confirmed")
                    .HasDefaultValue(false);
 
             builder.Property(u => u.TwoFactorEnabled)
-                   .HasColumnName("TWO_FACTOR_ENABLED")
+                   .HasColumnName("two_factor_enabled")
                    .HasDefaultValue(false);
 
-            builder.Property(u => u.LockoutEnd).HasColumnName("LOCKOUT_END");
+            builder.Property(u => u.LockoutEnd).HasColumnName("lockout_end");
             builder.Property(u => u.LockoutEnabled)
-                   .HasColumnName("LOCKOUT_ENABLED")
+                   .HasColumnName("lockout_enabled")
                    .HasDefaultValue(false);
 
-            builder.Property(u => u.AccessFailedCount).HasColumnName("ACCESS_FAILED_COUNT");
+            builder.Property(u => u.AccessFailedCount).HasColumnName("access_failed_count");
 
             builder.Property(u => u.FullName)
-                   .HasColumnName("FULL_NAME")
+                   .HasColumnName("full_name")
                    .HasMaxLength(250);
 
             // Indexes (the same convention as Role)
             builder.HasIndex(u => u.NormalizedUserName)
-                   .HasDatabaseName("UX_USERS_NORMALIZED_USER_NAME")
+                   .HasDatabaseName("ux_users_normalized_user_name")
                    .IsUnique();
 
             builder.HasIndex(u => u.NormalizedEmail)
-                   .HasDatabaseName("IX_USERS_NORMALIZED_EMAIL");
+                   .HasDatabaseName("ix_users_normalized_email");
         }
     }
 }
