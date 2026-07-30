@@ -125,28 +125,13 @@ namespace Flex.Auth.Services
             return result;
         }
 
-        //public async Task<bool> LogoutAsync(ClaimsPrincipal user, CancellationToken cancellationToken = default)
-        //{
-        //    var jti = user.FindFirstValue(ClaimTypesApp.Jti);
-        //    var expClaim = user.FindFirstValue(ClaimTypesApp.Exp);
+        public async Task<bool> LogoutAsync(ClaimsPrincipal user, CancellationToken cancellationToken = default)
+        {
+            var jti = user.FindFirstValue(ClaimTypesApp.Jti);
+            var sub = user.FindFirstValue(ClaimTypesApp.Sub);
 
-        //    if (string.IsNullOrEmpty(jti) || string.IsNullOrEmpty(expClaim) || !long.TryParse(expClaim, out var expUnix))
-        //    {
-        //        return false;
-        //    }
-
-        //    var exp = DateTimeOffset.FromUnixTimeSeconds(expUnix).UtcDateTime;
-        //    var now = DateTime.UtcNow;
-
-        //    if (exp <= now)
-        //    {
-        //        return true;
-        //    }
-
-        //    var ttl = exp - now;
-        //    await _jwtBacklistTokenService.RevokeTokenAsync(jti, ttl);
-        //    return true;
-        //}
+            return await Task.FromResult(true);
+        }
 
         public async Task<UserInfo?> GetCurrentUserInfoAsync(ClaimsPrincipal user, CancellationToken cancellationToken = default)
         {

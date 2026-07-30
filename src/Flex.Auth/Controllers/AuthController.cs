@@ -34,18 +34,13 @@ namespace Flex.Auth.Controllers
             return Ok(resutl);
         }
 
-        //[HttpPost("logout")]
-        //[Authorize]
-        //public async Task<IActionResult> Logout()
-        //{
-        //    var ok = await _authService.LogoutAsync(User, HttpContext.RequestAborted);
-
-        //    if (!ok)
-        //    {
-        //        return BadRequest(Result.Failure("Invalid token."));
-        //    }
-        //    return Ok(Result.Success(message: "Logout success!"));
-        //}
+        [HttpPost("logout")]
+        [AllowAnonymous]
+        public async Task<IActionResult> Logout()
+        {
+            await _authService.LogoutAsync(User, HttpContext.RequestAborted);
+            return Ok(Result.Success(message: "Logout success!"));
+        }
 
         [HttpGet("me")]
         [Authorize]

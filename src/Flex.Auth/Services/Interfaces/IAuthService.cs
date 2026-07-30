@@ -8,6 +8,7 @@ namespace Flex.Auth.Services.Interfaces
         Task<LoginResult> LoginAsync(
             LoginRequest request, 
             CancellationToken ct = default);
+        Task<bool> LogoutAsync(ClaimsPrincipal user, CancellationToken cancellationToken = default);
         Task<UserInfo?> GetCurrentUserInfoAsync(ClaimsPrincipal user, CancellationToken cancellationToken = default);
     }
 }
