@@ -1,9 +1,10 @@
-﻿using Flex.Auth.Models.Users;
+using Flex.Auth.Models.Users;
 using Flex.Auth.Services.Interfaces;
 using Flex.Infrastructures.Responses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using ClaimTypesApp = Flex.Infrastructures.Authentication.ClaimTypes;
 
 namespace Flex.Auth.Controllers
 {
@@ -46,22 +47,22 @@ namespace Flex.Auth.Controllers
         //    return Ok(Result.Success(message: "Logout success!"));
         //}
 
-        //[HttpGet("me")]
-        //[Authorize]
-        //public async Task<IActionResult> GetCurrentUserInfo()
-        //{
-        //    var userInfo = await _authService.GetCurrentUserInfoAsync(User, HttpContext.RequestAborted);
-        //    if (userInfo is null)
-        //    {
-        //        if (string.IsNullOrEmpty(User.FindFirstValue(ClaimTypesApp.Sub)))
-        //        {
-        //            return Unauthorized(Result.Failure(message: "Unauthorized"));
-        //        }
+        [HttpGet("me")]
+        [Authorize]
+        public async Task<IActionResult> GetCurrentUserInfo()
+        {
+            var userInfo = await _authService.GetCurrentUserInfoAsync(User, HttpContext.RequestAborted);
+            if (userInfo is null)
+            {
+                if (string.IsNullOrEmpty(User.FindFirstValue(ClaimTypesApp.Sub)))
+                {
+                    return Unauthorized(Result.Failure(message: "Unauthorized"));
+                }
 
-        //        return BadRequest(Result.Failure(message: "User not found"));
-        //    }
+                return BadRequest(Result.Failure(message: "User not found"));
+            }
 
-        //    return Ok(Result.Success(message: "Get info user success!", data: userInfo));
-        //}
+            return Ok(Result.Success(message: "Get info user success!", data: userInfo));
+        }
     }
 }

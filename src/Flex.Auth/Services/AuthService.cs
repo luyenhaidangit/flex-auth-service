@@ -1,4 +1,4 @@
-﻿using Flex.Domain.Constants;
+using Flex.Domain.Constants;
 using Flex.Domain.Entities;
 using Flex.Domain.Events.Users;
 using Flex.Auth.Models.Users;
@@ -148,24 +148,27 @@ namespace Flex.Auth.Services
         //    return true;
         //}
 
-        //public async Task<UserInfoResult> GetCurrentUserInfoAsync(ClaimsPrincipal user, CancellationToken cancellationToken = default)
-        //{
-        //    var userName = user.FindFirstValue(ClaimTypesApp.Sub);
-        //    if (string.IsNullOrEmpty(userName))
-        //    {
-        //        throw new ValidationException(ErrorCode.Unauthorized);
-        //    }
+        public async Task<UserInfo?> GetCurrentUserInfoAsync(ClaimsPrincipal user, CancellationToken cancellationToken = default)
+        {
+            var userName = user.FindFirstValue(ClaimTypesApp.Sub);
+            if (string.IsNullOrEmpty(userName))
+            {
+                return null;
+            }
 
-        //    var entity = await _userRepository.GetByUserNameAsync(userName, cancellationToken)
-        //        ?? throw new ValidationException(ErrorCode.UserNotFound);
+            var entity = await _userRepository.GetByUserNameAsync(userName, cancellationToken);
+            if (entity is null)
+            {
+                return null;
+            }
 
-        //    var userInfo = new UserInfo
-        //    {
-        //        UserName = entity.UserName ?? string.Empty,
-        //        Email = entity.Email ?? string.Empty
-        //    };
+            var userInfo = new UserInfo
+            {
+                UserName = entity.UserName ?? string.Empty,
+                Email = entity.Email ?? string.Empty
+            };
 
-        //    return userInfo;
-        //}
+            return userInfo;
+        }
     }
 }

@@ -1,4 +1,4 @@
-﻿using Flex.Infrastructures.Observability;
+using Flex.Infrastructures.Observability;
 using Flex.Infrastructures.Responses;
 using Serilog;
 
@@ -27,8 +27,6 @@ namespace Flex.Auth.Extensions
                     c.DisplayRequestDuration();
                 });
             }
-
-            app.UseHttpsRedirection();
 
             app.UseCors();
 

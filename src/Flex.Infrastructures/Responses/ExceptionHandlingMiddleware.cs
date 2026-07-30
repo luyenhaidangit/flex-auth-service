@@ -29,7 +29,7 @@ namespace Flex.Infrastructures.Responses
             {
                 await _next.Invoke(context);
 
-                if (!context.Response.HasStarted && this.IsErrorStatusCode(context.Response.StatusCode))
+                if (!HasResponseBody(context.Response) && this.IsErrorStatusCode(context.Response.StatusCode))
                 {
                     await HandleCustomStatusCode(context);
                 }
@@ -39,6 +39,15 @@ namespace Flex.Infrastructures.Responses
                 _logger.LogError(ex, "Unhandled exception: {Message}", ex.Message);
                 await this.HandleException(context, ex);
             }
+        }
+
+        private static bool HasResponseBody(HttpResponse response)
+        {
+            if (response.HasStarted) return true;
+            if (response.ContentLength.HasValue && response.ContentLength.Value > 0) return true;
+            if (response.Body.CanSeek && response.Body.Length > 0) return true;
+            if (!string.IsNullOrEmpty(response.ContentType)) return true;
+            return false;
         }
 
         private async Task HandleException(HttpContext context, Exception ex)
