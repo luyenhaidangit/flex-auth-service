@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
@@ -29,7 +29,7 @@ namespace Flex.Infrastructures.Authentication
             })
             .AddJwtBearer();
 
-            services.AddOptions<JwtBearerOptions>()
+            services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
                 .Configure<IOptions<JwtSettings>>((jwtBearerOptions, jwtOptions) =>
                 {
                     var settings = jwtOptions.Value;
