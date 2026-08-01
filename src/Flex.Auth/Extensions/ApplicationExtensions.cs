@@ -1,4 +1,4 @@
-using Flex.Infrastructures.Observability;
+﻿using Flex.Infrastructures.Observability;
 using Flex.Infrastructures.Responses;
 using Serilog;
 
@@ -34,6 +34,9 @@ namespace Flex.Auth.Extensions
 
             app.UseAuthentication();
             app.UseAuthorization();
+
+            // TODO: Implement healthcheck
+            app.MapGet("/health", () => Results.Ok()).AllowAnonymous();
 
             // Map Controllers
             app.MapControllers();
