@@ -102,7 +102,7 @@ pipeline {
                         echo "========== Image =========="
                         echo "Building docker image version: ${env.VERSION}"
                         sh '''
-                            docker build -t flex-apigateway:$VERSION .
+                            docker build -t flex-auth-service:$VERSION .
                         '''
                         echo "=============================="
                     }
@@ -125,11 +125,12 @@ pipeline {
                             sh '''
                                 set -e
                                 echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-                                docker tag flex-apigateway:${VERSION} $DOCKER_USER/flex-apigateway:${VERSION}
-                                docker push $DOCKER_USER/flex-apigateway:${VERSION}
+                                docker tag flex-auth-service:${VERSION} $DOCKER_USER/flex-auth-service:${VERSION}
+                                docker push $DOCKER_USER/flex-auth-service:${VERSION}
                                 docker logout || true
                             '''
                         }
+
                         echo "========== Publish =========="
                         echo "=============================="
                     }
