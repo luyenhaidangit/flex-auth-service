@@ -102,6 +102,13 @@ public class GlobalLoggingMiddleware
         }
         finally
         {
+            // Reset Content-Length header to match actual bytes written to prevent Kestrel mismatch exception
+            if (context.Response.Headers.ContainsKey("Content-Length"))
+            {
+                context.Response.Headers.Remove("Content-Length");
+            }
+            context.Response.ContentLength = null;
+
             // Copy response body back to original stream
             responseBodyStream.Seek(0, SeekOrigin.Begin);
             await responseBodyStream.CopyToAsync(originalBodyStream);
