@@ -20,6 +20,11 @@ namespace Flex.Infrastructures.Http
         ClaimsPrincipal? GetUser();
 
         /// <summary>
+        /// Gets the subject claim ("sub") of the authenticated user. Returns null when not authenticated or claim is absent.
+        /// </summary>
+        string? GetUserId();
+
+        /// <summary>
         /// Gets a specific claim value from the current user.
         /// </summary>
         string? GetClaimValue(string claimType);

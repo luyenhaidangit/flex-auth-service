@@ -1,3 +1,4 @@
+using Flex.Infrastructures.Authentication;
 using Flex.Infrastructures.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -150,7 +151,7 @@ public class GlobalLoggingMiddleware
         }
         else if (context.User?.Identity?.IsAuthenticated == true)
         {
-            logContext.UserId = context.User.Identity.Name ?? context.User.FindFirst("sub")?.Value;
+            logContext.UserId = context.User.Identity.Name ?? context.User.FindFirst(ClaimTypes.Sub)?.Value;
         }
 
         // Extract ClientId

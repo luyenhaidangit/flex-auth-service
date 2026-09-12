@@ -1,6 +1,7 @@
 using Flex.Infrastructures.Http;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
+using AuthClaimTypes = Flex.Infrastructures.Authentication.ClaimTypes;
 
 namespace Flex.Infrastructures.Http
 {
@@ -44,6 +45,8 @@ namespace Flex.Infrastructures.Http
         {
             return _httpContextAccessor.HttpContext?.User;
         }
+
+        public string? GetUserId() => this.GetClaimValue(AuthClaimTypes.Sub);
 
         public string? GetClaimValue(string claimType)
         {
